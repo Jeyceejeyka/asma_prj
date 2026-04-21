@@ -3,7 +3,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView    
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.accounts.serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer, LoginSerializer, LogoutSerializer, RefreshTokenSerializer, ChangePasswordSerializer, MeSerializer
+from apps.accounts.serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer, LoginSerializer, LogoutSerializer, RefreshTokenSerializer, ChangePasswordSerializer, MeSerializer, ForgotPasswordSerializer
 from django.db import transaction
 from django.contrib.auth import login
 
@@ -143,12 +143,30 @@ class MeView(APIView):
 
         return Response(serializer.data)
 
+# forgot_password view
+class ForgotPassword(APIView):
+    permission_classes = [permissions.AllowAny]
 
-# # update profile view
-# def update_profile(request):
-#     pass
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get("email")
 
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # TODO: implement password reset email sending logic here
+        try:
+            user = User.objects.get(email=email)
+            # send password reset email to user.email
+            # use django's built-in password reset functionality or implement your own email sending logic here
 
+            return Response({"message": "Password reset email sent"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+#TODO: implement reset_password view
+        
 # # verify email view
 # # delete account view
 # # list users view (admin only)

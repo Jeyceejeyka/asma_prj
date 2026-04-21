@@ -123,3 +123,9 @@ class MeSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("First name cannot be empty")
         return value
+
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    
