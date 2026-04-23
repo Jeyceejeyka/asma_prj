@@ -3,11 +3,15 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView    
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.accounts.serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer, LoginSerializer, LogoutSerializer, RefreshTokenSerializer, ChangePasswordSerializer, MeSerializer, ForgotPasswordSerializer
+from apps.accounts.serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer, LoginSerializer, LogoutSerializer, RefreshTokenSerializer, ChangePasswordSerializer, MeSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from django.db import transaction
 from django.contrib.auth import login
 
-
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 
@@ -155,18 +159,56 @@ class ForgotPassword(APIView):
         if not email:
             return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # TODO: implement password reset email sending logic here
         try:
             user = User.objects.get(email=email)
+                        
+            # encode user id
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # generate token for the user
+            token = default_token_generator.make_token(user)
+            
+            # initialize reset link plus domain or site eg localhost or domain url
+            reset_link = f'settings.Frontend_url_or_domain_name_url/reset-password-confirm/{uid}/{token}'
             # send password reset email to user.email
-            # use django's built-in password reset functionality or implement your own email sending logic here
-
+            send_mail(
+                subject="Password Reset Request",
+                message=f"Hi {user.username},\n\nYou requested a password reset. Click the link below to reset your password:\n\n{reset_link}\n\nIf you didn't request this, please ignore this email.\n\nThanks,\nYour Team",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+                
+            )
+            
             return Response({"message": "Password reset email sent"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
-#TODO: implement reset_password view
+class ResetPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
+        uid = serializer.validated_data.get("uid")
+        token = serializer.validated_data.get("token")
+        new_password = serializer.validated_data.get("new_password")
+
+        try:
+            # decode user_id to get user id
+            user_id = force_str(urlsafe_base64_encode(uid))
+            user = User.objects.get(pk=user_id)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Invalid uid"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not default_token_generator.check_token(user, token):
+            return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(new_password) 
+        user.save()
+
+        return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
 # # verify email view
 # # delete account view
 # # list users view (admin only)
