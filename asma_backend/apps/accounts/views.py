@@ -148,7 +148,7 @@ class MeView(APIView):
         return Response(serializer.data)
 
 # forgot_password view
-class ForgotPassword(APIView):
+class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -209,47 +209,9 @@ class ResetPasswordView(APIView):
         user.save()
 
         return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
-# # verify email view
-# # delete account view
-# # list users view (admin only)
-# # retrieve user view (admin only)
-# # update user view (admin only)
-# # delete user view (admin only)
-# # password reset view
-# # password reset confirm view
-# # password reset complete view
-# # password reset done view
-# # email verification view
-# # email verification confirm view
-# # email verification complete view
-# # email verification done view
-# # social login view
-# # social login callback view
-# # social login complete view
-# # social login done view
-# # social login disconnect view
-# # social login disconnect complete view
-# # social login disconnect done view
-# # social login disconnect cancel view
-# # social login disconnect cancel complete view
-# # social login disconnect cancel done view
-# # social login disconnect cancel cancel view
-# # social login disconnect cancel cancel complete view
-# # social login disconnect cancel cancel done view
-# # social login disconnect cancel cancel cancel view
-# # social login disconnect cancel cancel cancel complete view
-# # social login disconnect cancel cancel cancel done view
-# # social login disconnect cancel cancel cancel cancel view
-# # social login disconnect cancel cancel cancel complete view
-# # social login disconnect cancel cancel cancel done view
-# # social login disconnect cancel cancel cancel cancel view
-# # social login disconnect cancel cancel cancel complete view
-# # social login disconnect cancel cancel view
-# # social login disconnect cancel complete view
-# # social login disconnect cancel done view
-# # social login disconnect view      
-# # social login disconnect complete view
-# # social login disconnect done view
-# # social login disconnect cancel view
-# # social login disconnect cancel complete view
-# # social login disconnect cancel done view
+
+# ===============Admin views ============
+# UserListView
+# UserDetailView
+# UserUpdateView
+# UserDeleteView
