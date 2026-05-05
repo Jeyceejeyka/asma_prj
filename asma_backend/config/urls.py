@@ -22,5 +22,10 @@ urlpatterns = [
     path('url-links/', include('apps.url_links.urls')),
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/products/', include('apps.products.urls')),
+    path('api/v1/cart/', include('apps.cart.urls')),
+    path('api/v1/orders/', include('apps.orders.urls')),
+    path('api/v1/payments/', include('apps.payments.urls')),
     # path('api/v1/analytics/', include('apps.analytics.urls')),
+    # path('api/v1/notifications/', include('apps.notifications.urls')),
+    # path('api/v1/reviews/', include('apps.reviews.urls')),
 ]

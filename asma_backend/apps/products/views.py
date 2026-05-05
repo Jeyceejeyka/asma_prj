@@ -95,12 +95,41 @@ class ProductViewSet(ModelViewSet):
         # Use full serializer for reads
         return ProductDetailSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+
 
 class CategoryViewSet(ModelViewSet):
     """
     Admin category management
+    Handles:
+    - create
+    - update
+    - delete
+    - list
+    - retrieve
     """
     permission_classes = [IsAdmin]
-    # pylint: disable=no-member
-    queryset = Category.objects.all()
+
+    def get_queryset(self):
+        return Category.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+
+
+class CategoryDetailView(RetrieveAPIView):
+    """
+    Public category detail
+    """
+    permission_classes = [permissions.AllowAny]
     serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        return Category.objects.all()

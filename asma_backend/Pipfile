@@ -15,6 +15,7 @@ pillow = "*"
 requests = "*"
 gunicorn = "*"
 whitenoise = "*"
+django-environ = "*"
 
 [dev-packages]
 

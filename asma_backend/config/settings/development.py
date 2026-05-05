@@ -11,16 +11,25 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize environment variables
+env = environ.Env()
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    env.read_env(env_file)
+
+
+SECRET_KEY = env('SECRET_KEY')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%ausefzyjlez27y0yyf&2!s$6k^!5@ie2p8(hqw=)%t7r7!m5b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,14 +100,11 @@ AUTH_USER_MODEL = 'accounts.User'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db(),
 }
 
 
