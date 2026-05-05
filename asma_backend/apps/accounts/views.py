@@ -1,7 +1,8 @@
 from apps.accounts.models import User
 from rest_framework import permissions, status
 from rest_framework.response import Response
-from rest_framework.views import APIView    
+from rest_framework.views import APIView   
+from rest_framework import generics 
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.accounts.serializers import ChangePasswordSerializer, RegisterSerializer, UserSerializer, LoginSerializer, LogoutSerializer, RefreshTokenSerializer, ChangePasswordSerializer, MeSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from django.db import transaction
@@ -15,7 +16,6 @@ from django.conf import settings
 
 
 
-# Register views
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -23,14 +23,12 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        with transaction.atomic():
-            user = serializer.save()
+        user = serializer.save()
 
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            "user": UserSerializer(user, context={'request': request}).data,
-            "message": "User registered successfully",
+            "user": UserSerializer(user).data,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }, status=status.HTTP_201_CREATED)
@@ -61,6 +59,7 @@ class LoginView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }, status=status.HTTP_200_OK)
+
 
 # refresh token view
 class RefreshTokenView(APIView):
@@ -168,8 +167,9 @@ class ForgotPasswordView(APIView):
             # generate token for the user
             token = default_token_generator.make_token(user)
             
-            # initialize reset link plus domain or site eg localhost or domain url
-            reset_link = f'settings.Frontend_url_or_domain_name_url/reset-password-confirm/{uid}/{token}'
+            # initialize reset link with actual frontend URL
+            reset_link = f'https://frontend.example.com/reset-password-confirm/{uid}/{token}'
+            
             # send password reset email to user.email
             send_mail(
                 subject="Password Reset Request",
@@ -177,12 +177,10 @@ class ForgotPasswordView(APIView):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
                 fail_silently=False,
-                
             )
-            
-            return Response({"message": "Password reset email sent"}, status=status.HTTP_200_OK)
+            return Response({"message": "Password reset email sent successfully."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
         
 class ResetPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -212,6 +210,27 @@ class ResetPasswordView(APIView):
 
 # ===============Admin views ============
 # UserListView
+class UserListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    
+    
 # UserDetailView
+class UserDetailView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    
 # UserUpdateView
+class UserUpdateView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    
+    
 # UserDeleteView
+class UserDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
