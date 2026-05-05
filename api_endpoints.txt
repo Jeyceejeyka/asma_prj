@@ -1,0 +1,312 @@
+# API Endpoints Documentation
+
+This document describes all the API endpoints available in the backend, including what each endpoint does, what data the frontend should send, and what the backend returns.
+
+## Base URL
+All API endpoints are prefixed with the base URL of the backend server.
+
+## Authentication
+Most endpoints require authentication via JWT tokens. Include the access token in the Authorization header as `Bearer <token>`.
+
+---
+
+## Accounts Endpoints
+Base path: `/api/v1/accounts/`
+
+### POST /register/
+**Purpose:** Register a new user account.
+
+**Frontend sends:**
+- email (string): User's email address
+- password (string): User's password
+- Other user fields as per RegisterSerializer
+
+**Backend returns:**
+- user (object): User data
+- refresh (string): Refresh token
+- access (string): Access token
+
+### POST /login/
+**Purpose:** Authenticate user and get tokens.
+
+**Frontend sends:**
+- email (string): User's email
+- password (string): User's password
+
+**Backend returns:**
+- user (object): User data
+- refresh (string): Refresh token
+- access (string): Access token
+
+### POST /refresh/
+**Purpose:** Refresh the access token.
+
+**Frontend sends:**
+- refresh (string): Refresh token
+
+**Backend returns:**
+- access (string): New access token
+
+### POST /logout/
+**Purpose:** Logout user by blacklisting refresh token.
+
+**Frontend sends:**
+- refresh (string): Refresh token
+
+**Backend returns:**
+- message (string): "User logged out successfully"
+
+### GET /me/
+**Purpose:** Get current user's profile.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- User profile data (object)
+
+### PATCH /me/
+**Purpose:** Update current user's profile.
+
+**Frontend sends:**
+- Partial user data (object)
+
+**Backend returns:**
+- Updated user profile data (object)
+
+### POST /change-password/
+**Purpose:** Change user's password.
+
+**Frontend sends:**
+- old_password (string)
+- new_password (string)
+
+**Backend returns:**
+- message (string): "Password changed successfully"
+
+### POST /forgot-password/
+**Purpose:** Send password reset email.
+
+**Frontend sends:**
+- email (string): User's email
+
+**Backend returns:**
+- message (string): "Password reset email sent successfully."
+
+### POST /reset-password/
+**Purpose:** Reset password using token.
+
+**Frontend sends:**
+- uid (string): Encoded user ID
+- token (string): Reset token
+- new_password (string): New password
+
+**Backend returns:**
+- message (string): "Password reset successful"
+
+---
+
+## Products Endpoints
+Base path: `/api/v1/products/`
+
+### GET /products/
+**Purpose:** Get list of products (public, optimized).
+
+**Frontend sends:** Nothing (optional query params for filtering)
+
+**Backend returns:**
+- Array of products (minimal fields: id, product_name, price, category name)
+
+### GET /products/{id}/
+**Purpose:** Get detailed product information.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Full product data (object)
+
+### GET /categories/
+**Purpose:** Get list of categories.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Array of categories
+
+### GET /admin/products/
+**Purpose:** Admin: Get list of products (full CRUD).
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Array of products (full data)
+
+### GET /admin/categories/
+**Purpose:** Admin: Get list of categories.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Array of categories
+
+---
+
+## Cart Endpoints
+Base path: `/api/v1/cart/`
+
+### GET /
+**Purpose:** Get user's cart details.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- cart (object): Cart data
+- total_price (number): Total price
+- total_items (number): Total quantity
+
+### POST /add/
+**Purpose:** Add item to cart.
+
+**Frontend sends:**
+- product_id (integer)
+- quantity (integer)
+
+**Backend returns:**
+- Cart item data (object)
+
+### PATCH /item/{item_id}/
+**Purpose:** Update cart item quantity.
+
+**Frontend sends:**
+- quantity (integer)
+
+**Backend returns:**
+- Updated cart item data (object)
+
+### DELETE /item/{item_id}/
+**Purpose:** Remove cart item.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- message (string): "Item removed."
+
+### DELETE /remove/{product_id}/
+**Purpose:** Remove item by product ID.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- message (string): "Item removed."
+
+### DELETE /clear/
+**Purpose:** Clear entire cart.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- message (string): "Cart cleared."
+
+### POST /checkout/
+**Purpose:** Initiate checkout and payment.
+
+**Frontend sends:** Nothing (uses current cart)
+
+**Backend returns:**
+- detail (string): "STK push sent"
+- checkout_request_id (string)
+
+---
+
+## Orders Endpoints
+Base path: `/api/v1/orders/`
+
+### POST /create/
+**Purpose:** Create a new order.
+
+**Frontend sends:**
+- Order data (object, as per OrderSerializer)
+
+**Backend returns:**
+- Order detail data (object)
+
+### GET /my-orders/
+**Purpose:** Get list of user's orders.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Array of user's orders
+
+### GET /{id}/
+**Purpose:** Get order details.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Order detail data (object)
+
+### POST /{id}/cancel/
+**Purpose:** Cancel an order.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- message (string): "Order cancelled."
+
+### GET /admin/orders/
+**Purpose:** Admin: Get list of all orders.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Array of all orders
+
+### GET /admin/orders/{id}/
+**Purpose:** Admin: Get order details.
+
+**Frontend sends:** Nothing
+
+**Backend returns:**
+- Order detail data (object)
+
+### POST /admin/orders/{id}/update-status/
+**Purpose:** Admin: Update order status.
+
+**Frontend sends:**
+- status (string): New status
+
+**Backend returns:**
+- Updated order detail data (object)
+
+---
+
+## Payments Endpoints
+Base path: `/api/v1/payments/`
+
+### POST /daraja/callback/
+**Purpose:** Handle payment callback from Daraja (M-Pesa).
+
+**Frontend sends:** Nothing (called by payment gateway)
+
+**Backend returns:**
+- message (string): "Callback processed successfully."
+
+
+## Admin Endpoints
+Base path: `/admin/`
+
+### Various Django admin URLs
+**Purpose:** Django admin interface.
+
+**Frontend sends:** Depends on admin actions
+
+**Backend returns:** HTML pages for admin interface
+
+---
+
+## Notes
+- All endpoints under `/api/v1/` except url-links and admin.
+- Authentication required for most endpoints except public product/category views and auth endpoints.
+- Error responses include appropriate HTTP status codes and error messages.
+- Serializers define exact field requirements and validations.</content>
+<parameter name="filePath">/home/jaafar/myprjs/asma/api_endpoints.txt

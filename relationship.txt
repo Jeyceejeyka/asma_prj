@@ -1,0 +1,31 @@
+
+
+
+| Relationship        | Defined in | Field         |
+| ------------------- | ---------- | ------------- |
+| Category → Product  | Product    | ForeignKey    |
+| User → Cart         | User       | OneToOneField |
+| Cart → CartItem     | CartItem   | ForeignKey    |
+| Product → CartItem  | CartItem   | ForeignKey    |
+| User → Order        | Order      | ForeignKey    |
+| Order → OrderItem   | OrderItem  | ForeignKey    |
+| Product → OrderItem | OrderItem  | ForeignKey    |
+| Order → Payment     | Payment    | OneToOneField |
+
+==================================
+==== Rule you should remember ====
+==================================
+One-to-many → use ForeignKey on the “many” side
+One-to-one → use OneToOneField
+Never define relationships on both models
+
+
+Here’s the exact sequence to follow to create models, in order:
+1.User
+2.products
+3.cart
+4.orders
+5. payments
+6. accounts (finish/strengthen if not complete)
+7. analytics
+8. core (refactor/shared utilities)
