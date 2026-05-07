@@ -2,23 +2,20 @@ from rest_framework import serializers
 from .models import Product, Category
 
 
-# --- Category ---
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name']
+        fields = ['id', 'category_name']
 
 
-# --- Product (LIST - optimized) ---
 class ProductListSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.CharField(source='category.category_name', read_only=True)
 
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'price', 'category_name']
+        fields = ['id', 'product_name', 'price', 'stock_quantity', 'category_name']
 
 
-# --- Product (DETAIL - full) ---
 class ProductDetailSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
 
@@ -27,8 +24,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# --- Product (WRITE - admin) ---
 class ProductWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['product_name', 'description', 'price', 'category']
+        fields = [
+            'product_name',
+            'description',
+            'price',
+            'stock_quantity',
+            'category',
+            'image_url'
+        ]

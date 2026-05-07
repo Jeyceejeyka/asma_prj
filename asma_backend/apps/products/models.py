@@ -15,6 +15,12 @@ class Product(models.Model):
     image_url = models.URLField(max_length=500, null=True, blank=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock_quantity = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=models.Q(stock_quantity__gte=0), name="stock_quantity_nonnegative")
+        ]
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,

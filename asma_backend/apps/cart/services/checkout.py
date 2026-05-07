@@ -36,16 +36,17 @@ class CheckoutService:
     def __init__(self, user):
         self.user = user
 
-    def execute(self):
+    def execute(self, idempotency_key=None):
+        # Optionally accept idempotency_key for future idempotency support
         with transaction.atomic():
             cart = self._get_cart()
             items = self._get_locked_items(cart)
             self._validate_cart_not_empty(items)
             total_price, prepared_items = self._validate_and_prepare(items)
             order = self._create_order(total_price)
-            self._create_order_items(order, prepared_items)
-            self._deduct_stock(items)
-            self._clear_cart(items)
+            self._create_order_items(order, prepared_items, reserved=True)
+            self._reserve_stock(items)
+            # Do NOT clear cart or deduct stock yet; only reserve
             return {
                 'order_id': order.id,
                 'total_price': total_price,
@@ -86,23 +87,45 @@ class CheckoutService:
             status='pending'
         )
 
-    def _create_order_items(self, order, prepared_items):
+    def _create_order_items(self, order, prepared_items, reserved=True):
         order_items = [
             OrderItem(
                 order=order,
                 product=data['product'],
                 quantity=data['quantity'],
-                price=data['price']
+                price=data['price'],
+                reserved=reserved
             )
             for data in prepared_items
         ]
         OrderItem.objects.bulk_create(order_items)
 
-    def _deduct_stock(self, items):
+
+    def _reserve_stock(self, items):
+        # Optionally, add a field to Product for reserved stock if needed. For now, just check availability.
         for item in items:
-            Product.objects.filter(id=item.products.id).update(
-                stock=F('stock') - item.quantity
+            product = item.products
+            if item.quantity > product.stock_quantity:
+                raise ValueError(f'Insufficient stock for {product.product_name}')
+            # Optionally, log reservation here
+            # Actual deduction happens after payment confirmation
+
+    # The following methods are now only used after payment confirmation or expiration/cancellation
+    def deduct_stock(self, order):
+        # Call this after payment confirmation
+        for order_item in order.items.select_related('product').filter(reserved=True):
+            Product.objects.filter(id=order_item.product.id).update(
+                stock_quantity=F('stock_quantity') - order_item.quantity
             )
+            order_item.reserved = False
+            order_item.save(update_fields=['reserved'])
+
+    def release_stock(self, order):
+        # Call this on expiration/cancellation
+        for order_item in order.items.select_related('product').filter(reserved=True):
+            # No deduction needed, just mark as not reserved
+            order_item.reserved = False
+            order_item.save(update_fields=['reserved'])
 
     def _clear_cart(self, items):
         items.delete()

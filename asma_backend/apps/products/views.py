@@ -1,6 +1,8 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import permissions
+from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db.models import Q
 
 from .models import Product, Category
 from .serializers import (
@@ -12,124 +14,86 @@ from .serializers import (
 
 
 # =========================
-# PERMISSIONS
-# =========================
-
-class IsAdmin(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user and request.user.is_staff
-
-
-# =========================
-# PUBLIC VIEWS (READ-ONLY)
-# =========================
-
-class ProductListView(ListAPIView):
-    """
-    Public product list (optimized)
-    - minimal fields
-    - no N+1 queries
-    """
-    permission_classes = [permissions.AllowAny]
-    serializer_class = ProductListSerializer
-
-    def get_queryset(self):
-        # pylint: disable=no-member
-        return Product.objects.select_related('category').only(
-            'id',
-            'product_name',
-            'price',
-            'category__name'
-        )
-
-
-class ProductDetailView(RetrieveAPIView):
-    """
-    Public product detail (full data)
-    """
-    permission_classes = [permissions.AllowAny]
-    serializer_class = ProductDetailSerializer
-
-    def get_queryset(self):
-        # pylint: disable=no-member
-        return Product.objects.select_related('category')
-
-
-class CategoryListView(ListAPIView):
-    """
-    Public category list
-    """
-    permission_classes = [permissions.AllowAny]
-    serializer_class = CategorySerializer
-
-    def get_queryset(self):
-        # pylint: disable=no-member
-        return Category.objects.all()
-
-
-# =========================
-# ADMIN VIEWSETS (FULL CRUD)
+# PRODUCT VIEWSET
 # =========================
 
 class ProductViewSet(ModelViewSet):
-    """
-    Admin product management
-    Handles:
-    - create
-    - update
-    - delete
-    - list
-    - retrieve
-    """
-    permission_classes = [IsAdmin]
+    queryset = Product.objects.select_related('category')
 
-    def get_queryset(self):
-        # pylint: disable=no-member
-        return Product.objects.select_related('category')
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'search', 'by_category']:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def get_serializer_class(self):
-        # Use lightweight serializer for writes
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'list':
+            return ProductListSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
             return ProductWriteSerializer
-
-        # Use full serializer for reads
         return ProductDetailSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+    # 🔍 Search
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        query = request.query_params.get('q', '')
 
-    def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
+        if not query:
+            return Response([])
 
+        products = Product.objects.filter(
+            Q(product_name__icontains=query) |
+            Q(description__icontains=query)
+        ).select_related('category')
+
+        return Response(ProductListSerializer(products, many=True).data)
+
+    # 📂 Products by category
+    @action(detail=False, methods=['get'], url_path='category/(?P<category_id>[^/.]+)')
+    def by_category(self, request, category_id=None):
+        products = Product.objects.filter(category_id=category_id).select_related('category')
+        return Response(ProductListSerializer(products, many=True).data)
+
+    # 💰 Price filter
+    @action(detail=False, methods=['get'])
+    def price_range(self, request):
+        min_price = request.query_params.get('min_price')
+        max_price = request.query_params.get('max_price')
+
+        queryset = Product.objects.select_related('category')
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        return Response(ProductListSerializer(queryset, many=True).data)
+
+    # 📦 Stock filter
+    @action(detail=False, methods=['get'])
+    def in_stock(self, request):
+        products = Product.objects.filter(stock_quantity__gt=0).select_related('category')
+        return Response(ProductListSerializer(products, many=True).data)
+
+
+# =========================
+# CATEGORY VIEWSET
+# =========================
 
 class CategoryViewSet(ModelViewSet):
-    """
-    Admin category management
-    Handles:
-    - create
-    - update
-    - delete
-    - list
-    - retrieve
-    """
-    permission_classes = [IsAdmin]
-
-    def get_queryset(self):
-        return Category.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
-
-
-class CategoryDetailView(RetrieveAPIView):
-    """
-    Public category detail
-    """
-    permission_classes = [permissions.AllowAny]
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_queryset(self):
-        return Category.objects.all()
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'search']:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        query = request.query_params.get('q', '')
+
+        if not query:
+            return Response([])
+
+        categories = Category.objects.filter(category_name__icontains=query)
+        return Response(CategorySerializer(categories, many=True).data)
