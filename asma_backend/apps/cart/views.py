@@ -12,7 +12,12 @@ from apps.orders.models import Order
 
 # Helper to get or create cart for user
 def get_user_cart(user):
-    cart, _ = Cart.objects.get_or_create(user=user)  #type: ignore[attr-defined]
+    from django.utils import timezone
+    from datetime import timedelta
+    cart, created = Cart.objects.get_or_create(user=user)  #type: ignore[attr-defined]
+    # Set/refresh expiration (e.g., 30 min from now)
+    cart.expires_at = timezone.now() + timedelta(minutes=30)
+    cart.save(update_fields=["expires_at"])
     return cart
 
 
@@ -87,18 +92,35 @@ class CartCheckoutView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        # 1. Create order (or get existing unpaid order)
+        # Idempotency key from header or body
+        idempotency_key = request.headers.get('Idempotency-Key') or request.data.get('idempotency_key')
+        if not idempotency_key:
+            return Response({'detail': 'Missing Idempotency-Key'}, status=400)
         service = CheckoutService(user=request.user)
         try:
-            result = service.execute()  # creates order ONLY
+            result = service.execute(idempotency_key=idempotency_key)
             order = Order.objects.get(id=result['order_id'])
 
             # 🔒 Prevent double payment
             if order.transactions.filter(status='PENDING').exists():
                 return Response({'detail': 'Payment already in progress'}, status=400)
+            
+            phone = request.data.get("phone")
+
+            if not phone:
+                return Response(
+                    {"detail": "Phone number is required"},
+                    status=400
+                )
 
             # 2. Initiate STK push
-            payment_response = initiate_payment(order, request.user)
+                        # payment_response = initiate_payment(order, request.user)
+            payment_response = initiate_payment(
+                order,
+                request.user,
+                phone
+            )
+
 
             return Response({
                 'detail': 'STK push sent',

@@ -4,22 +4,24 @@ from apps.products.serializers import ProductListSerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    product = ProductListSerializer(read_only=True)
+    product = ProductListSerializer(source='products', read_only=True)
+    product_id = serializers.IntegerField(source='products.id', read_only=True)
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'quantity', 'total_price']
+        fields = ['id', 'product', 'product_id', 'quantity', 'total_price']
 
 
 class CartSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
     items = CartItemSerializer(many=True, read_only=True)
     total_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     total_items = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Cart
-        fields = ['id', 'items', 'total_items', 'total_price']
+        fields = ['id', 'user', 'items', 'total_items', 'total_price']
 
 
 class CartItemWriteSerializer(serializers.Serializer):
@@ -30,3 +32,9 @@ class CartItemWriteSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("Quantity must be greater than 0")
         return value
+
+    def create(self, validated_data):
+        raise NotImplementedError("CartItemWriteSerializer is for validation only")
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError("CartItemWriteSerializer is for validation only")

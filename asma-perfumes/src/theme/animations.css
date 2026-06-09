@@ -1,0 +1,10 @@
+/* Subtle entrance and hover animations for premium feel */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+.anim-fade-up { animation: fadeUp 700ms cubic-bezier(.2,.9,.3,1) both; }
+.shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%); background-size: 200% 100%; }
+.shimmer-anim { animation: shimmer 1.4s linear infinite; }
+
+.card-elevate { transition: transform 280ms cubic-bezier(.2,.9,.3,1), box-shadow 280ms; }
+.card-elevate:hover { transform: translateY(-6px) rotate(-0.25deg); box-shadow: 0 20px 50px rgba(2,6,23,0.45); }

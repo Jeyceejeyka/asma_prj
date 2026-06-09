@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 
 class Category(models.Model):
@@ -12,7 +13,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     product_name = models.CharField(max_length=255, db_index=True)
-    image_url = models.URLField(max_length=500, null=True, blank=True)
+    image = CloudinaryField('image', null=True, blank=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock_quantity = models.PositiveIntegerField(default=0)

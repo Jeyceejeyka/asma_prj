@@ -1,0 +1,43 @@
+{
+  "hero": {
+    "subtitle": "Our Story",
+    "titleLine1": "The Art of",
+    "titleHighlight": "Unforgettable",
+    "titleLine2": "Scent",
+    "description": "Asma Perfumes is a Nairobi-born luxury fragrance house dedicated to creating scents that transcend the ordinary. We believe every person carries a story — and the right fragrance brings it to life."
+  },
+  "stats": [
+    { "value": "25+", "label": "Signature Scents" },
+    { "value": "4", "label": "Curated Collections" },
+    { "value": "50+", "label": "Premium Ingredients" },
+    { "value": "7K+", "label": "Happy Customers" }
+  ],
+  "values": [
+    { "iconName": "Gem", "title": "Craftsmanship", "desc": "Every fragrance is meticulously blended by master perfumers using rare, ethically sourced ingredients from around the world." },
+    { "iconName": "Heart", "title": "Passion", "desc": "Born from a deep love for scent — each creation tells a story, evokes a memory, and captures an emotion." },
+    { "iconName": "Globe", "title": "Heritage", "desc": "Rooted in the rich perfumery traditions of the Middle East, reimagined for the modern connoisseur." },
+    { "iconName": "Sparkles", "title": "Excellence", "desc": "We never compromise. From ingredient selection to the final bottle, every detail is perfected." }
+  ],
+  "founderQuote": {
+    "quote": "A truly great fragrance doesn't just sit on skin — it becomes part of who you are. That's what we create at Asma.",
+    "name": "Asma",
+    "title": "Founder & Creative Director"
+  },
+  "milestones": [
+    { "year": "2018", "title": "The Beginning", "desc": "Asma Perfumes was born in Nairobi — a small studio with a grand vision for East African luxury fragrance." },
+    { "year": "2019", "title": "First Collection", "desc": "Midnight Oud launched to instant acclaim, establishing our signature of dark, complex compositions." },
+    { "year": "2021", "title": "Expanding Horizons", "desc": "Velvet Rose & Amber Noir collections introduced, broadening our palette from florals to rich orientals." },
+    { "year": "2023", "title": "The Atelier", "desc": "Opened our dedicated fragrance atelier in Nairobi, where every scent is now crafted by hand." },
+    { "year": "2025", "title": "25 Signatures", "desc": "Our catalog reached 25 signature fragrances across four curated collections, each a masterpiece." }
+  ],
+  "process": [
+    { "step": "01", "title": "Source", "iconName": "Globe", "desc": "We source the finest raw materials — Mysore sandalwood, Grasse roses, Ethiopian frankincense — from trusted partners across continents." },
+    { "step": "02", "title": "Compose", "iconName": "Star", "desc": "Our master perfumers blend each composition by hand, testing hundreds of variations until the scent is perfect." },
+    { "step": "03", "title": "Present", "iconName": "Gem", "desc": "Each fragrance is housed in hand-finished bottles, designed to be as beautiful as the scent within." }
+  ],
+  "cta": {
+    "title": "Find Your",
+    "highlight": "Signature",
+    "description": "Explore our curated collections and discover the fragrance that tells your story."
+  }
+}

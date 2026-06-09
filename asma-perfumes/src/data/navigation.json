@@ -1,0 +1,13 @@
+{
+  "navLinks": [
+    { "to": "/", "label": "Home" },
+    { "to": "/collections/All", "label": "Collections" },
+    { "to": "/ai-finder", "label": "Finder" },
+    { "to": "/about", "label": "About" }
+  ],
+  "footerCollections": ["Midnight Oud", "Velvet Rose", "Amber Noir", "Fresh Waters"],
+  "footerSupport": ["Shipping", "Returns", "Contact"],
+  "brandTagline": "Luxury fragrances crafted for those who understand that scent is the most intimate form of self-expression.",
+  "newsletterText": "Be the first to discover new fragrances.",
+  "copyright": "© 2025 ASMA PERFUMES. All rights reserved."
+}

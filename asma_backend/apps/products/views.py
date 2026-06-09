@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.decorators import action
@@ -31,6 +32,29 @@ class ProductViewSet(ModelViewSet):
         elif self.action in ['create', 'update', 'partial_update']:
             return ProductWriteSerializer
         return ProductDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        detail_data = ProductDetailSerializer(
+            serializer.instance,
+            context=self.get_serializer_context()
+        ).data
+        return Response(detail_data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        detail_data = ProductDetailSerializer(
+            serializer.instance,
+            context=self.get_serializer_context()
+        ).data
+        return Response(detail_data)
 
     # 🔍 Search
     @action(detail=False, methods=['get'])

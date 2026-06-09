@@ -1,0 +1,44 @@
+# Django REST E-commerce API Production Readiness Review
+
+## ✅ Fully Implemented
+- Basic user authentication (register, login, logout, refresh, password change/reset/forgot)
+- Product listing, detail, category filtering, search, price range, and in-stock queries
+- Cart endpoints: add, remove, clear, item update, checkout
+- Order creation, user order listing, order detail, order cancel
+- Admin endpoints for users, products, categories, orders, payments, carts, and cart items
+- Payment callback endpoint (Daraja)
+
+## ⚠️ Partially Implemented / Risky
+- Cart and order endpoints exist, but:
+  - No evidence of stock locking or atomicity during checkout (risk of overselling under concurrency)
+  - No explicit idempotency for checkout/order/payment endpoints (risk of double-purchase on retry)
+  - No visible cart expiration or abandoned cart cleanup
+  - Order cancel endpoint exists, but no lifecycle enforcement (e.g., cannot cancel after shipping/payment?)
+  - Payment endpoints exist, but unclear if payment/order state transitions are atomic and consistent
+  - No evidence of background jobs for order/payment timeouts or retries
+  - No explicit handling of race conditions (e.g., two users buying last item)
+  - No clear refund/chargeback handling
+
+## ❌ Missing Critical Production Features
+- No endpoint or evidence for:
+  - Stock reservation/locking at checkout (to prevent overselling)
+  - Idempotency keys for order/payment/checkout (to ensure safe retries)
+  - Webhook signature validation (for payment callbacks)
+  - Order state machine/lifecycle enforcement (e.g., paid, shipped, delivered, cancelled)
+  - Audit logging for sensitive actions (orders, payments, admin changes)
+  - Rate limiting/throttling (to prevent abuse)
+  - Background/async processing for timeouts, expirations, or retries
+  - Inventory adjustment on order cancel/refund
+  - User address management (shipping/billing)
+  - Tax calculation endpoints
+  - Discount/coupon/voucher support
+  - Shipment/tracking endpoints
+  - Multi-currency/multi-region support
+  - GDPR/data export endpoints
+
+---
+
+**Completeness Estimate:** 55%
+
+**Production Readiness:**
+This API covers basic e-commerce flows but lacks critical production safeguards for concurrency, data consistency, and lifecycle enforcement. Not ready for real-world deployment without addressing the above risks and missing features.

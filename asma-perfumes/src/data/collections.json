@@ -1,0 +1,6 @@
+[
+  { "name": "Midnight Oud", "tagline": "Dark woods. Smoky resin. The night itself.", "description": "A collection for those drawn to the mysterious depths of night — where oud and amber create an unforgettable trail.", "imageKey": "midnight-oud" },
+  { "name": "Velvet Rose", "tagline": "Soft petals. Warm musk. Intimacy bottled.", "description": "Delicate florals wrapped in warm musk — each scent a love letter written in petals.", "imageKey": "velvet-rose" },
+  { "name": "Amber Noir", "tagline": "Citrus opener. Deep amber heart. Unforgettable.", "description": "Bold beginnings that settle into rich amber — fragrances that announce your arrival and linger in memory.", "imageKey": "amber-noir" },
+  { "name": "Fresh Waters", "tagline": "Crisp air. Ocean mist. Pure vitality.", "description": "Refreshing aquatic and citrus compositions — the essence of nature's most invigorating moments.", "imageKey": "fresh-waters" }
+]

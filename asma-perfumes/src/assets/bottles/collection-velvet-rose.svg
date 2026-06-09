@@ -1,0 +1,18 @@
+<svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#461D34"/>
+      <stop offset="100%" stop-color="#9A4275"/>
+    </linearGradient>
+    <linearGradient id="bottle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFB8E3"/>
+      <stop offset="100%" stop-color="#8F3E6F"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1600" rx="80" fill="url(#bg)"/>
+  <rect x="315" y="340" width="570" height="920" rx="180" fill="url(#bottle)" opacity="0.96"/>
+  <ellipse cx="600" cy="1340" rx="210" ry="44" fill="#D38FC5" opacity="0.55"/>
+  <path d="M450 520C450 470 570 450 600 450C630 450 750 470 750 520V720C750 770 630 790 600 790C570 790 450 770 450 720V520Z" fill="#FDE8F2" opacity="0.9"/>
+  <text x="600" y="1500" text-anchor="middle" fill="#FFF2FF" font-family="Inter, sans-serif" font-size="92" font-weight="700">Velvet</text>
+  <text x="600" y="1580" text-anchor="middle" fill="#F9D1F3" font-family="Inter, sans-serif" font-size="64">Rose</text>
+</svg>

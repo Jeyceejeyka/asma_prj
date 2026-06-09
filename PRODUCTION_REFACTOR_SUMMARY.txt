@@ -1,0 +1,40 @@
+# Production-Safe E-commerce Backend: Summary of Critical Refactors
+
+## 1. Stock Safety & Inventory Consistency
+- Product model now enforces non-negative stock at the DB level.
+- Stock is reserved (not deducted) at checkout using atomic transactions and row-level locking.
+- Stock is only deducted after payment confirmation; released on order cancel/expiration.
+- OrderItem tracks reservation status.
+
+## 2. Idempotency for Checkout & Payments
+- Checkout/order/payment endpoints require an idempotency key (header or body).
+- DB uniqueness constraint prevents duplicate orders per user/idempotency key.
+- Payment callback is idempotent and concurrency-safe.
+
+## 3. Order Lifecycle Enforcement
+- Strict state transitions: only allowed transitions (pending→paid→shipped→delivered/cancelled).
+- Order cancellation releases reserved stock atomically.
+- Admin/manual status changes are restricted.
+
+## 4. Payment Webhook Hardening
+- Payment callback verifies idempotency and uses row-level locking.
+- Stock is only deducted after payment success, released on failure.
+
+## 5. Cart Expiration & Background Processing
+- Cart has an `expires_at` field, refreshed on every access.
+- Celery background task expires carts and releases reserved stock for abandoned carts.
+
+## 6. Concurrency & Transaction Safety
+- All critical flows (checkout, payment, stock updates, cancellation) are wrapped in atomic DB transactions.
+- Row-level locking (`select_for_update`) prevents race conditions.
+
+---
+
+## Deployment/Operation Notes
+- **Celery** must be running for cart expiration to work. Schedule `expire_carts_and_release_stock` task (e.g., every 5 minutes).
+- All API clients must send an `Idempotency-Key` header for checkout/payment.
+- Review and test all flows under concurrent load before production launch.
+
+---
+
+This system is now robust against overselling, duplicate orders/payments, and abandoned cart stock leaks. All changes are backward compatible with existing API contracts.

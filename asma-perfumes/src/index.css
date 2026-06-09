@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import './theme/animations.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 40 33% 94%;
+    --card: 0 0% 7%;
+    --card-foreground: 40 33% 94%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 40 33% 94%;
+    --primary: 38 40% 60%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 40 33% 94%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 66%;
+    --accent: 38 40% 60%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 40 33% 94%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 38 40% 60%;
+    --radius: 0.25rem;
+
+    --gold: 38 40% 60%;
+    --ivory: 40 33% 94%;
+    --noir: 0 0% 4%;
+    --noir-card: 0 0% 7%;
+    --noir-muted: 0 0% 66%;
+  }
+
+  .light {
+    --background: 30 25% 97%;
+    --foreground: 20 12% 15%;
+    --card: 30 20% 94%;
+    --card-foreground: 20 12% 15%;
+    --popover: 30 22% 95%;
+    --popover-foreground: 20 12% 15%;
+    --primary: 30 45% 40%;
+    --primary-foreground: 30 25% 97%;
+    --secondary: 30 15% 90%;
+    --secondary-foreground: 20 10% 20%;
+    --muted: 30 12% 90%;
+    --muted-foreground: 20 8% 45%;
+    --accent: 30 45% 40%;
+    --accent-foreground: 30 25% 97%;
+    --destructive: 0 65% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 85%;
+    --input: 30 12% 85%;
+    --ring: 30 45% 40%;
+
+    --gold: 30 45% 40%;
+    --ivory: 20 12% 15%;
+    --noir: 30 25% 97%;
+    --noir-card: 30 20% 94%;
+    --noir-muted: 20 8% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply relative border border-primary text-primary bg-transparent px-10 py-3.5 tracking-[0.2em] uppercase text-[11px] font-body font-light transition-all duration-500 hover:bg-primary hover:text-primary-foreground;
+  }
+  .btn-gold-solid {
+    @apply bg-primary text-primary-foreground px-10 py-3.5 tracking-[0.2em] uppercase text-[11px] font-body font-light transition-all duration-300 hover:opacity-90;
+  }
+  .gold-glow {
+    box-shadow: 0 0 30px hsl(var(--gold) / 0.12), 0 0 60px hsl(var(--gold) / 0.04);
+  }
+  .section-padding {
+    @apply px-6 md:px-12 lg:px-20 xl:px-28;
+  }
+}
+
+@layer utilities {
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+  .border-gold {
+    border-color: hsl(var(--gold));
+  }
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+}
+
+
+@media (max-width: 360px) {
+  .section-padding {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}

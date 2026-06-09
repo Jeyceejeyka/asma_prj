@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "question": "What draws you in?",
+      "optionA": { "label": "Warm", "value": "warm" },
+      "optionB": { "label": "Fresh", "value": "fresh" }
+    },
+    {
+      "question": "How do you want to feel?",
+      "optionA": { "label": "Bold", "value": "bold" },
+      "optionB": { "label": "Soft", "value": "soft" }
+    },
+    {
+      "question": "When will you wear it?",
+      "optionA": { "label": "Day", "value": "day" },
+      "optionB": { "label": "Night", "value": "night" }
+    }
+  ],
+  "resultMap": {
+    "warm-bold-night": { "personality": "Warm Amber + Smoky Oud", "productIds": [1, 7] },
+    "warm-bold-day": { "personality": "Spiced Amber + Cardamom", "productIds": [7, 9] },
+    "warm-soft-night": { "personality": "Warm Vanilla + Musk", "productIds": [4, 8] },
+    "warm-soft-day": { "personality": "Golden Resin + Peach", "productIds": [8, 4] },
+    "fresh-bold-night": { "personality": "Dark Cedar + Pepper", "productIds": [2, 3] },
+    "fresh-bold-day": { "personality": "Citrus + Deep Amber", "productIds": [7, 3] },
+    "fresh-soft-night": { "personality": "White Flowers + Sandalwood", "productIds": [6, 5] },
+    "fresh-soft-day": { "personality": "Green Tea + Gardenia", "productIds": [6, 5] }
+  }
+}

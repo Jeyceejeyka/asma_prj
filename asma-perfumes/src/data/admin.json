@@ -1,0 +1,76 @@
+{
+  "orderStatuses": ["Pending", "Paid", "Failed", "Shipped", "Delivered"],
+  "adminEmail": "admin@asma.co.ke",
+  "dashboardTitle": "Asma Admin",
+  "loginTitle": "Admin Login",
+  "loginSubtitle": "Asma Perfumes Dashboard",
+  "tabs": [
+    { "key": "dashboard", "label": "Dashboard" },
+    { "key": "products", "label": "Products" },
+    { "key": "orders", "label": "Orders" },
+    { "key": "customers", "label": "Customers" },
+    { "key": "addProduct", "label": "Add Product" }
+  ],
+  "revenueChart": {
+    "title": "Revenue Trend",
+    "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "data": [45000, 62000, 78000, 54000, 89000, 95000, 72000, 110000, 98000, 125000, 140000, 155000]
+  },
+  "ordersChart": {
+    "title": "Orders by Month",
+    "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "data": [12, 18, 24, 15, 28, 31, 22, 35, 29, 40, 44, 50]
+  },
+  "orderStatusChart": {
+    "title": "Order Status Distribution",
+    "labels": ["Pending", "Paid", "Shipped", "Delivered", "Failed"],
+    "data": [15, 35, 20, 25, 5],
+    "colors": ["#EAB308", "#22C55E", "#3B82F6", "#A855F7", "#EF4444"]
+  },
+  "collectionSalesChart": {
+    "title": "Sales by Collection",
+    "labels": ["Midnight Oud", "Velvet Rose", "Amber Noir", "Fresh Waters"],
+    "data": [320000, 245000, 410000, 180000],
+    "colors": ["#1E293B", "#F43F5E", "#D97706", "#06B6D4"]
+  },
+  "topSellingProducts": [
+    { "name": "Amber Noir", "unitsSold": 142, "revenue": 362100 },
+    { "name": "Midnight Oud", "unitsSold": 118, "revenue": 289100 },
+    { "name": "Royal Saffron", "unitsSold": 95, "revenue": 304000 },
+    { "name": "Velvet Rose", "unitsSold": 88, "revenue": 193600 },
+    { "name": "Sacred Sandalwood", "unitsSold": 76, "revenue": 197600 }
+  ],
+  "recentActivity": [
+    { "action": "New order", "detail": "ORD-006 by Mary Njeri", "time": "2 min ago" },
+    { "action": "Payment received", "detail": "KES 24,500 from David Otieno", "time": "15 min ago" },
+    { "action": "Product updated", "detail": "Midnight Oud stock adjusted", "time": "1 hr ago" },
+    { "action": "New customer", "detail": "John Mwangi registered", "time": "2 hrs ago" },
+    { "action": "Order shipped", "detail": "ORD-004 dispatched", "time": "3 hrs ago" }
+  ],
+  "productFormFields": {
+    "grades": ["Eau de Cologne", "Eau de Toilette", "Eau de Parfum", "Parfum", "Extrait"],
+    "seasons": ["Spring", "Summer", "Autumn", "Winter", "All Seasons"],
+    "genders": ["Unisex", "Masculine", "Feminine"],
+    "longevities": ["2-4 hours", "4-6 hours", "6-8 hours", "8-12 hours", "12+ hours"],
+    "sillages": ["Intimate", "Moderate", "Strong", "Enormous"],
+    "ratings": [1, 2, 3, 4, 5]
+  },
+  "sampleOrders": [
+    { "id": "ORD-001", "customer": "Jane Wanjiku", "phone": "0712345678", "items": [{"name": "Midnight Oud", "size": "50ml", "qty": 1, "price": 8500}], "total": 8800, "status": "Paid", "date": "2025-03-28", "paymentRef": "QK78HG4S2L", "address": "123 Moi Ave, Nairobi" },
+    { "id": "ORD-002", "customer": "David Otieno", "phone": "0798765432", "items": [{"name": "Velvet Rose", "size": "100ml", "qty": 1, "price": 12000}, {"name": "Amber Noir", "size": "50ml", "qty": 2, "price": 8500}], "total": 29300, "status": "Shipped", "date": "2025-03-27", "paymentRef": "QK78HG4S3M", "address": "45 Kenyatta Blvd, Mombasa" },
+    { "id": "ORD-003", "customer": "Amina Hassan", "phone": "0700111222", "items": [{"name": "Ocean Breeze", "size": "30ml", "qty": 1, "price": 5500}], "total": 5800, "status": "Pending", "date": "2025-03-29", "paymentRef": "", "address": "78 Oginga Odinga St, Kisumu" },
+    { "id": "ORD-004", "customer": "Peter Kamau", "phone": "0733444555", "items": [{"name": "Sacred Sandalwood", "size": "100ml", "qty": 1, "price": 15000}], "total": 15300, "status": "Delivered", "date": "2025-03-25", "paymentRef": "QK78HG4S4N", "address": "12 Tom Mboya St, Nairobi" },
+    { "id": "ORD-005", "customer": "Lucy Muthoni", "phone": "0722666777", "items": [{"name": "Dark Cherry", "size": "50ml", "qty": 1, "price": 9500}], "total": 9800, "status": "Failed", "date": "2025-03-29", "paymentRef": "", "address": "56 Haile Selassie Ave, Nairobi" },
+    { "id": "ORD-006", "customer": "Mary Njeri", "phone": "0711222333", "items": [{"name": "Royal Saffron", "size": "100ml", "qty": 1, "price": 32000}], "total": 32300, "status": "Paid", "date": "2025-03-30", "paymentRef": "QK78HG4S5P", "address": "89 Kimathi St, Nairobi" },
+    { "id": "ORD-007", "customer": "James Odhiambo", "phone": "0744555666", "items": [{"name": "Tobacco Vanille", "size": "50ml", "qty": 1, "price": 24000}, {"name": "Noir Smoke", "size": "50ml", "qty": 1, "price": 21500}], "total": 45800, "status": "Shipped", "date": "2025-03-30", "paymentRef": "QK78HG4S6Q", "address": "34 Jomo Kenyatta Ave, Eldoret" }
+  ],
+  "sampleCustomers": [
+    { "id": "C001", "name": "Jane Wanjiku", "email": "jane@email.com", "phone": "0712345678", "orders": 3, "totalSpent": 28500, "lastOrder": "2025-03-28", "status": "Active" },
+    { "id": "C002", "name": "David Otieno", "email": "david@email.com", "phone": "0798765432", "orders": 5, "totalSpent": 54200, "lastOrder": "2025-03-27", "status": "Active" },
+    { "id": "C003", "name": "Amina Hassan", "email": "amina@email.com", "phone": "0700111222", "orders": 1, "totalSpent": 5800, "lastOrder": "2025-03-29", "status": "New" },
+    { "id": "C004", "name": "Peter Kamau", "email": "peter@email.com", "phone": "0733444555", "orders": 7, "totalSpent": 89000, "lastOrder": "2025-03-25", "status": "VIP" },
+    { "id": "C005", "name": "Lucy Muthoni", "email": "lucy@email.com", "phone": "0722666777", "orders": 2, "totalSpent": 19600, "lastOrder": "2025-03-29", "status": "Active" },
+    { "id": "C006", "name": "Mary Njeri", "email": "mary@email.com", "phone": "0711222333", "orders": 4, "totalSpent": 65400, "lastOrder": "2025-03-30", "status": "Active" },
+    { "id": "C007", "name": "James Odhiambo", "email": "james@email.com", "phone": "0744555666", "orders": 6, "totalSpent": 78900, "lastOrder": "2025-03-30", "status": "VIP" }
+  ]
+}

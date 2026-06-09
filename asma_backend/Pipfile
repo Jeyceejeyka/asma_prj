@@ -7,7 +7,6 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
-django-cors-headers = "*"
 django-filter = "*"
 python-decouple = "*"
 psycopg2-binary = "*"
@@ -16,6 +15,9 @@ requests = "*"
 gunicorn = "*"
 whitenoise = "*"
 django-environ = "*"
+django-cors-headers = "*"
+cloudinary = "*"
+django-cloudinary-storage = "*"
 
 [dev-packages]
 

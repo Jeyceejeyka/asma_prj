@@ -1,0 +1,791 @@
+# ---
+
+POST /api/v1/accounts/refresh/
+
+**Headers:**
+- Content-Type: application/json
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "refresh": "jwt-refresh-token-string"
+}
+```
+
+Success Response (200):
+```json
+{
+  "access": "jwt-access-token-string"
+}
+```
+
+Error Response (401):
+```json
+{
+  "detail": "Token is invalid or expired."
+}
+```
+
+**Field Explanations:**
+- `refresh`: JWT refresh token
+- `access`: New JWT access token
+
+Validation Rules:
+- Refresh token must be valid and not expired
+
+# ---
+
+POST /api/v1/accounts/change-password/
+
+**Headers:**
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{
+  "old_password": "string",
+  "new_password": "string"
+}
+```
+
+Success Response (200):
+```json
+{
+  "detail": "Password changed successfully."
+}
+```
+
+Error Response (400):
+```json
+{
+  "old_password": ["Incorrect password."],
+  "new_password": ["Password too short."]
+}
+```
+
+**Field Explanations:**
+- `old_password`: Current password
+- `new_password`: New password (must meet policy)
+
+Validation Rules:
+- User must be authenticated
+- Old password must match
+- New password must meet security policy
+
+# ---
+
+POST /api/v1/accounts/reset-password/
+
+**Headers:**
+- Content-Type: application/json
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "email": "user@example.com",
+  "token": "reset-token",
+  "new_password": "string"
+}
+```
+
+Success Response (200):
+```json
+{
+  "detail": "Password reset successful."
+}
+```
+
+Error Response (400):
+```json
+{
+  "detail": "Invalid token or email."
+}
+```
+
+**Field Explanations:**
+- `email`: User's email
+- `token`: Password reset token
+- `new_password`: New password
+
+Validation Rules:
+- Token must be valid for the user
+
+# ---
+
+POST /api/v1/accounts/forgot-password/
+
+**Headers:**
+- Content-Type: application/json
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+Success Response (200):
+```json
+{
+  "detail": "Password reset email sent."
+}
+```
+
+Error Response (400):
+```json
+{
+  "detail": "Email not found."
+}
+```
+
+**Field Explanations:**
+- `email`: User's email
+
+Validation Rules:
+- Email must be registered
+
+# ---
+
+GET /api/v1/accounts/users/
+
+**Headers:**
+- Authorization: Bearer <admin-token>
+
+**Authentication:** Required (admin)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+[
+  {"id": 1, "email": "user@example.com", "username": "string"}
+]
+```
+
+Error Response (403):
+```json
+{
+  "detail": "Not authorized."
+}
+```
+
+**Field Explanations:**
+- `id`: User ID
+- `email`: User's email
+- `username`: User's display name
+
+Validation Rules:
+- Admin authentication required
+
+# ---
+
+GET /api/v1/accounts/users/<int:pk>/
+
+**Headers:**
+- Authorization: Bearer <admin-token>
+
+**Authentication:** Required (admin)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "username": "string"
+}
+```
+
+Error Response (404):
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**Field Explanations:**
+- See above
+
+Validation Rules:
+- Admin authentication required
+
+# ---
+
+PUT /api/v1/accounts/users/<int:pk>/update/
+
+**Headers:**
+- Authorization: Bearer <admin-token>
+- Content-Type: application/json
+
+**Authentication:** Required (admin)
+
+Request JSON:
+```json
+{
+  "email": "new@example.com",
+  "username": "newname"
+}
+```
+
+Success Response (200):
+```json
+{
+  "id": 1,
+  "email": "new@example.com",
+  "username": "newname"
+}
+```
+
+Error Response (400):
+```json
+{
+  "email": ["This field must be unique."]
+}
+```
+
+**Field Explanations:**
+- `email`: New email
+- `username`: New username
+
+Validation Rules:
+- Email/username must be unique
+
+# ---
+
+DELETE /api/v1/accounts/users/<int:pk>/delete/
+
+**Headers:**
+- Authorization: Bearer <admin-token>
+
+**Authentication:** Required (admin)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (204):
+```json
+{}
+```
+
+Error Response (404):
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**Field Explanations:**
+- None
+
+Validation Rules:
+- Admin authentication required
+
+# ---
+
+# (Continue in this format for all advanced product/category, cart admin, order admin, and payment admin endpoints. Each will include method, route, request/response, headers, authentication, field explanations, and validation rules.)
+# ---
+
+POST /api/v1/accounts/register/
+
+**Headers:**
+- Content-Type: application/json
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "email": "user@example.com",
+  "password": "string",
+  "username": "string"
+}
+```
+
+Success Response (201):
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "username": "string"
+}
+```
+
+Error Response (400):
+```json
+{
+  "email": ["This field must be unique."],
+  "password": ["Password too short."]
+}
+```
+
+**Field Explanations:**
+- `email`: User's email (unique, required)
+- `password`: User's password (required, min length enforced)
+- `username`: User's display name (required, unique)
+
+Validation Rules:
+- All fields required
+- Email and username must be unique
+- Password must meet security policy
+
+# ---
+
+POST /api/v1/accounts/login/
+
+**Headers:**
+- Content-Type: application/json
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "email": "user@example.com",
+  "password": "string"
+}
+```
+
+Success Response (200):
+```json
+{
+  "access": "jwt-token-string",
+  "refresh": "jwt-refresh-token-string"
+}
+```
+
+Error Response (401):
+```json
+{
+  "detail": "Invalid credentials."
+}
+```
+
+**Field Explanations:**
+- `access`: JWT access token
+- `refresh`: JWT refresh token
+
+Validation Rules:
+- Email and password must match a registered user
+
+# ---
+
+POST /api/v1/accounts/logout/
+
+**Headers:**
+- Authorization: Bearer <token>
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+{
+  "detail": "Successfully logged out."
+}
+```
+
+Error Response (401):
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**Field Explanations:**
+- `detail`: Human-readable status
+
+Validation Rules:
+- User must be authenticated
+
+# ---
+
+GET /api/v1/accounts/me/
+
+**Headers:**
+- Authorization: Bearer <token>
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "username": "string"
+}
+```
+
+Error Response (401):
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**Field Explanations:**
+- `id`: User ID
+- `email`: User's email
+- `username`: User's display name
+
+Validation Rules:
+- User must be authenticated
+
+# ---
+
+GET /api/v1/products/
+
+**Headers:**
+- None (public)
+
+**Authentication:** None
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+[
+  {
+    "id": 1,
+    "product_name": "Product Name",
+    "description": "string",
+    "price": 100.0,
+    "stock_quantity": 10,
+    "category": "Category Name",
+    "image_url": "https://..."
+  }
+]
+```
+
+Error Response (default):
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**Field Explanations:**
+- `id`: Product ID
+- `product_name`: Name of the product
+- `description`: Product description
+- `price`: Product price
+- `stock_quantity`: Current available stock
+- `category`: Category name
+- `image_url`: Product image URL
+
+Validation Rules:
+- None (public endpoint)
+
+# ---
+
+GET /api/v1/products/<pk>/
+
+**Headers:**
+- None (public)
+
+**Authentication:** None
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+{
+  "id": 1,
+  "product_name": "Product Name",
+  "description": "string",
+  "price": 100.0,
+  "stock_quantity": 10,
+  "category": "Category Name",
+  "image_url": "https://..."
+}
+```
+
+Error Response (404):
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**Field Explanations:**
+- See above
+
+Validation Rules:
+- Product must exist
+
+# ---
+
+POST /api/v1/cart/add/
+
+**Headers:**
+- Authorization: Bearer <token>
+- Content-Type: application/json
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{
+  "product_id": 1,
+  "quantity": 2
+}
+```
+
+Success Response (201):
+```json
+{
+  "id": 1,
+  "cart": 1,
+  "products": 1,
+  "quantity": 2
+}
+```
+
+Error Response (400):
+```json
+{
+  "detail": "Invalid quantity."
+}
+```
+
+**Field Explanations:**
+- `product_id`: ID of the product to add
+- `quantity`: Number of units to add
+
+Validation Rules:
+- Product must exist
+- Quantity must be positive
+
+# (Continue in this format for all remaining endpoints: cart item update/delete, cart clear, cart detail, order creation, order detail, admin endpoints, etc.)
+# API Contracts: Production-Safe E-commerce Backend
+
+---
+
+POST /api/v1/cart/checkout/
+
+**Headers:**
+- `Authorization: Bearer <token>` (required)
+- `Idempotency-Key: <unique-string>` (required)
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (201):
+```json
+{
+  "detail": "STK push sent",
+  "checkout_request_id": "string"
+}
+```
+
+Error Response (400):
+```json
+{
+  "detail": "Missing Idempotency-Key"
+}
+```
+
+Error Response (400, insufficient stock):
+```json
+{
+  "detail": "Insufficient stock for <product_name>"
+}
+```
+
+Error Response (400, payment in progress):
+```json
+{
+  "detail": "Payment already in progress"
+}
+```
+
+**Field Explanations:**
+- `checkout_request_id`: Unique identifier for the payment request (from payment provider)
+- `detail`: Human-readable status or error message
+
+Validation Rules:
+- `Idempotency-Key` header must be present and unique per user/order attempt
+- User must be authenticated
+- Cart must not be empty
+- All items must have sufficient stock
+
+---
+
+POST /api/v1/payments/daraja/callback/
+
+**Headers:**
+- None (public endpoint, called by payment provider)
+
+**Authentication:** None
+
+Request JSON:
+```json
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "string",
+      "CheckoutRequestID": "string",
+      "ResultCode": 0,
+      "ResultDesc": "string",
+      "CallbackMetadata": {
+        "Item": [
+          {"Name": "MpesaReceiptNumber", "Value": "string"},
+          {"Name": "PhoneNumber", "Value": "string"},
+          {"Name": "Amount", "Value": 1000}
+        ]
+      }
+    }
+  }
+}
+```
+
+Success Response (200):
+```json
+{
+  "message": "Callback processed successfully."
+}
+```
+
+Error Response (400):
+```json
+{
+  "error": "Invalid callback format."
+}
+```
+
+Error Response (404):
+```json
+{
+  "error": "Transaction not found."
+}
+```
+
+**Field Explanations:**
+- `MerchantRequestID`, `CheckoutRequestID`: Payment provider identifiers
+- `ResultCode`: 0 for success, nonzero for failure
+- `CallbackMetadata`: Payment details
+
+Validation Rules:
+- Callback must include valid IDs and structure
+- Only unprocessed transactions are accepted (idempotency)
+
+---
+
+POST /api/v1/orders/<pk>/cancel/
+
+**Headers:**
+- `Authorization: Bearer <token>` (required)
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+{
+  "detail": "Order cancelled."
+}
+```
+
+Error Response (400):
+```json
+{
+  "detail": "Cannot cancel this order."
+}
+```
+
+**Field Explanations:**
+- `detail`: Human-readable status or error message
+
+Validation Rules:
+- Only orders in `pending` or `processing` state can be cancelled
+- User must own the order
+
+---
+
+GET /api/v1/orders/my-orders/
+
+**Headers:**
+- `Authorization: Bearer <token>` (required)
+
+**Authentication:** Required (user)
+
+Request JSON:
+```json
+{}
+```
+
+Success Response (200):
+```json
+[
+  {
+    "id": 1,
+    "total_price": 1000.0,
+    "status": "pending",
+    "created_at": "2026-05-08T12:00:00Z",
+    "items": [
+      {"product": "Product Name", "quantity": 2, "price": 500.0}
+    ]
+  }
+]
+```
+
+Error Response (401):
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**Field Explanations:**
+- `id`: Order ID
+- `total_price`: Total order value
+- `status`: Order state
+- `created_at`: ISO timestamp
+- `items`: List of order items
+
+Validation Rules:
+- User must be authenticated
+
+---
+
+# (Repeat this format for all other endpoints as needed)

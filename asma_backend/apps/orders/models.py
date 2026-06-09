@@ -8,6 +8,12 @@ class Order(models.Model):
     user_email = models.EmailField()
     total_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=20, default='pending')
+    idempotency_key = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'idempotency_key'], name='unique_order_idempotency_per_user')
+        ]
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):

@@ -1,0 +1,10 @@
+{
+  "steps": ["Cart", "Details", "Payment", "Confirmation"],
+  "deliveryFee": 300,
+  "freeDeliveryThreshold": 10000,
+  "currency": "KES",
+  "phonePrefix": "+254",
+  "phonePlaceholder": "0712 345 678",
+  "mpesaInstructions": "You will receive an M-Pesa prompt on your phone. Enter your PIN to complete payment.",
+  "supportedLocations": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Nyeri", "Other"]
+}

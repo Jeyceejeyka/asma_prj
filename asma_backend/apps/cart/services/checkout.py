@@ -8,8 +8,8 @@ from apps.payments.services.daraja import DarajaService
 from apps.utils.phone import normalize_phone
 
 
-def initiate_payment(order, user):
-    phone = normalize_phone(user.phone)
+def initiate_payment(order, user, phone):
+    phone = normalize_phone(phone)
     daraja = DarajaService()
     response = daraja.stk_push(
         phone=phone,
@@ -37,16 +37,23 @@ class CheckoutService:
         self.user = user
 
     def execute(self, idempotency_key=None):
-        # Optionally accept idempotency_key for future idempotency support
         with transaction.atomic():
             cart = self._get_cart()
             items = self._get_locked_items(cart)
             self._validate_cart_not_empty(items)
             total_price, prepared_items = self._validate_and_prepare(items)
-            order = self._create_order(total_price)
+            # Idempotency: check for existing order with this key
+            if idempotency_key:
+                existing = Order.objects.filter(user=self.user, idempotency_key=idempotency_key).first()
+                if existing:
+                    return {
+                        'order_id': existing.id,
+                        'total_price': existing.total_price,
+                        'items_count': existing.items.count()
+                    }
+            order = self._create_order(total_price, idempotency_key)
             self._create_order_items(order, prepared_items, reserved=True)
             self._reserve_stock(items)
-            # Do NOT clear cart or deduct stock yet; only reserve
             return {
                 'order_id': order.id,
                 'total_price': total_price,
@@ -69,7 +76,7 @@ class CheckoutService:
         prepared_items = []
         for item in items:
             product = item.products
-            if item.quantity > product.stock:
+            if item.quantity > product.stock_quantity:
                 raise ValueError(f'Insufficient stock for {product.name}')
             item_total = product.price * item.quantity
             total_price += item_total
@@ -80,11 +87,12 @@ class CheckoutService:
             })
         return total_price, prepared_items
 
-    def _create_order(self, total_price):
+    def _create_order(self, total_price, idempotency_key=None):
         return Order.objects.create(
             user=self.user,
             total_price=total_price,
-            status='pending'
+            status='pending',
+            idempotency_key=idempotency_key
         )
 
     def _create_order_items(self, order, prepared_items, reserved=True):

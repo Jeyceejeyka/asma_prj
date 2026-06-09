@@ -36,11 +36,17 @@ class CancelOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
+        from django.db import transaction
         order = get_object_or_404(Order, pk=pk, user=request.user)
         if order.status not in ['pending', 'processing']:
             return Response({'detail': 'Cannot cancel this order.'}, status=400)
-        order.status = 'cancelled'
-        order.save()
+        with transaction.atomic():
+            # Only release stock if still reserved
+            from apps.cart.services.checkout import CheckoutService
+            checkout_service = CheckoutService(order.user)
+            checkout_service.release_stock(order)
+            order.status = 'cancelled'
+            order.save()
         return Response({'detail': 'Order cancelled.'})
 
 # Admin: List All Orders

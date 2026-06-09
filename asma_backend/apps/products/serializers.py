@@ -10,21 +10,35 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.category_name', read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'price', 'stock_quantity', 'category_name']
+        fields = ['id', 'product_name', 'price', 'stock_quantity', 'category_name', 'image', 'description']
+
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['id', 'product_name', 'description', 'price', 'stock_quantity', 'category', 'image', 'created_at', 'updated_at']
+
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
 
 
 class ProductWriteSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True, use_url=True)
+
     class Meta:
         model = Product
         fields = [
@@ -33,5 +47,5 @@ class ProductWriteSerializer(serializers.ModelSerializer):
             'price',
             'stock_quantity',
             'category',
-            'image_url'
+            'image'
         ]
