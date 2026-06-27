@@ -10,8 +10,8 @@ const stories: BrandStoryItem[] = storiesData;
 const stats = [
   { icon: Droplets, value: "50+", label: "Unique Fragrances" },
   { icon: Compass, value: "100%", label: "Premium Oils" },
-  { icon: Award, value: "5", label: "Years Crafting" },
-  { icon: Heart, value: "10K+", label: "Happy Customers" },
+  { icon: Award, value: "5+", label: "Years in Business" },
+  { icon: Heart, value: "1K+", label: "Happy Customers" },
 ];
 
 const BrandStory = () => {

@@ -12,6 +12,8 @@ const socialLinks = [
   { icon: Twitter, href: "https://twitter.com/asmaperfumes", label: "Twitter" },
   { icon: Facebook, href: "https://facebook.com/asmaperfumes", label: "Facebook" },
   { icon: Youtube, href: "https://youtube.com/asmaperfumes", label: "YouTube" },
+  // tiktok icon
+  // { icon: Tiktok, href: 'https://'}
 ];
 
 const Footer = () => {
@@ -120,18 +122,18 @@ const Footer = () => {
             {/* Contact Info */}
             <div className="mt-6 pt-6 border-t border-border/30 space-y-2">
               <a
-                href="mailto:hello@asmaperfumes.co.ke"
+                href="mailto:boyoscar354@gmail.com"
                 className="flex items-center gap-2 text-xs text-foreground/40 hover:text-primary transition-colors duration-300"
               >
                 <Mail size={12} />
-                hello@asmaperfumes.co.ke
+                boyoscar354@gmail.com
               </a>
               <a
-                href="tel:+254700000000"
+                href="tel:+254768304584"
                 className="flex items-center gap-2 text-xs text-foreground/40 hover:text-primary transition-colors duration-300"
               >
                 <Phone size={12} />
-                +254 700 000 000
+                +254 768 304 584
               </a>
               <span className="flex items-center gap-2 text-xs text-foreground/40">
                 <MapPin size={12} />

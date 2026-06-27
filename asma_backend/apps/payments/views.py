@@ -17,6 +17,7 @@ class DarajaCallbackView(APIView):
     @transaction.atomic
     def post(self, request):
         data = request.data
+        print("apps/payments/views.py: Daraja callback received:", data)
         try:
             callback = data['Body']['stkCallback']
             merchant_request_id = callback['MerchantRequestID']
@@ -24,6 +25,16 @@ class DarajaCallbackView(APIView):
             result_code = callback['ResultCode']
             result_desc = callback['ResultDesc']
             metadata = callback.get('CallbackMetadata', {}).get('Item', [])
+            print(
+                "apps/payments/views.py: parsed callback =>",
+                {
+                    'merchant_request_id': merchant_request_id,
+                    'checkout_request_id': checkout_request_id,
+                    'result_code': result_code,
+                    'result_desc': result_desc,
+                    'metadata': metadata,
+                },
+            )
 
             # Parse metadata
             parsed_metadata = {
@@ -97,12 +108,14 @@ class PaymentStatusView(APIView):
 
     def get(self, request):
         checkout_request_id = request.query_params.get('checkout_request_id')
+        print("apps/payments/views.py: PaymentStatusView.get checkout_request_id=", checkout_request_id, "user=", request.user.id)
         if not checkout_request_id:
             return Response({'detail': 'Missing checkout_request_id'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             payment = PaymentTransaction.objects.get(checkout_request_id=checkout_request_id)
         except PaymentTransaction.DoesNotExist:
+            print("apps/payments/views.py: PaymentStatusView.get transaction not found for id=", checkout_request_id)
             return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
         # Authorization: only owner or admin can view

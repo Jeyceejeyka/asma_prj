@@ -1,6 +1,5 @@
 {
   "steps": ["Cart", "Details", "Payment", "Confirmation"],
-  "deliveryFee": 300,
   "freeDeliveryThreshold": 10000,
   "currency": "KES",
   "phonePrefix": "+254",

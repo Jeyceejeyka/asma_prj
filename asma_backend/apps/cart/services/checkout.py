@@ -9,27 +9,34 @@ from apps.utils.phone import normalize_phone
 
 
 def initiate_payment(order, user, phone):
-    phone = normalize_phone(phone)
-    daraja = DarajaService()
-    response = daraja.stk_push(
-        phone=phone,
-        amount=order.total_price,
-        account_reference=f"ORDER-{order.id}",
-        transaction_desc="Order Payment"
-    )
-    if 'CheckoutRequestID' not in response:
-        raise ValueError('Failed to initiate STK push')
+    print("apps/cart/services/checkout.py: initiate_payment phone=", phone, "order_id=", order.id, "amount=", order.total_price)
+    try:
+        phone = normalize_phone(phone)
+        print("apps/cart/services/checkout.py: initiate_payment normalized phone=", phone)
+        daraja = DarajaService()
+        response = daraja.stk_push(
+            phone=phone,
+            amount=order.total_price,
+            account_reference=f"ORDER-{order.id}",
+            transaction_desc="Order Payment"
+        )
+        print("apps/cart/services/checkout.py: initiate_payment daraja response=", response)
+        if 'CheckoutRequestID' not in response:
+            raise ValueError('Failed to initiate STK push: no CheckoutRequestID in response')
 
-    PaymentTransaction.objects.create(
-        user=user,
-        order=order,
-        checkout_request_id=response['CheckoutRequestID'],
-        merchant_request_id=response['MerchantRequestID'],
-        phone_number=phone,
-        amount=order.total_price,
-        status='PENDING'
-    )
-    return response
+        PaymentTransaction.objects.create(
+            user=user,
+            order=order,
+            checkout_request_id=response['CheckoutRequestID'],
+            merchant_request_id=response['MerchantRequestID'],
+            phone_number=phone,
+            amount=order.total_price,
+            status='PENDING'
+        )
+        return response
+    except Exception as e:
+        print("apps/cart/services/checkout.py: initiate_payment EXCEPTION=", str(e))
+        raise
 
 
 class CheckoutService:

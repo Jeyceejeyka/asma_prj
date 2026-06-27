@@ -83,7 +83,8 @@ const OrdersAdmin = () => {
               <Fragment key={o.id}>
                 <tr className="border-b border-border/20 hover:bg-background/40 cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>
                   <td className="py-3 px-4 font-mono text-xs">#{o.id}</td>
-                  <td className="py-3 px-4 text-foreground/80 text-sm">{o.customer?.email || `User ${o.user || "—"}`}</td>
+                  {/* query the user name */}
+                  <td className="py-3 px-4 text-foreground/80 text-sm">User {o.customer?.first_name} {o.customer?.last_name}</td>
                   <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell text-xs">{o.created_at ? new Date(o.created_at).toLocaleDateString() : "—"}</td>
                   <td className="py-3 px-4 text-primary">KES {Number(o.total || o.total_price || 0).toLocaleString()}</td>
                   <td className="py-3 px-4"><StatusBadge status={o.status} /></td>

@@ -1,13 +1,13 @@
 from pathlib import Path
 import environ
 from datetime import timedelta
+from decouple import config
 
-# Base directory (correct for config/settings/development.py)
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Environment setup
 env = environ.Env()
-env_file = BASE_DIR / '.env'
+env_file = BASE_DIR.parent / ".env"
 
 if env_file.exists():
     env.read_env(env_file)
@@ -17,10 +17,17 @@ SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list(
-    'ALLOWED_HOSTS',
-    default=['127.0.0.1', 'localhost']
-)
+# ALLOWED_HOSTS = env.list(
+#     'ALLOWED_HOSTS',
+#     default=['127.0.0.1', 'localhost']
+# )
+
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "pantomime-expansive-trapezoid.ngrok-free.dev",
+]
 
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
@@ -155,10 +162,24 @@ TEMPLATES = [
 
 AUTH_USER_MODEL = 'accounts.User'
 
-# Database
+# Database for Development 
+# DATABASES = {
+#     'default': env.db()
+# }
+
+
+# Database for Production
 DATABASES = {
-    'default': env.db()
-}
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
+    },
+};
+
 
 DARAJA = {
     "CONSUMER_KEY": env("DARAJA_CONSUMER_KEY"),
@@ -168,7 +189,6 @@ DARAJA = {
     "CALLBACK_URL": env("DARAJA_CALLBACK_URL"),
     "BASE_URL": env(
         "DARAJA_BASE_URL",
-        default="https://sandbox.safaricom.co.ke"
     ),
 }
 

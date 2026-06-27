@@ -124,7 +124,10 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   const method = rest.method || "GET";
   const fullUrl = `${API_BASE}${path}`;
   
-  console.log(`📡 [API] ${method} ${path}`);
+  console.log(`src/lib/api.ts: 📡 [API] ${method} ${path}`);
+  if (body !== undefined) {
+    console.log("src/lib/api.ts: 📤 [API] Request body:", body instanceof FormData ? "[FormData]" : body);
+  }
 
   const buildHeaders = (): HeadersInit => {
     const h: Record<string, string> = {
@@ -249,11 +252,32 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
 
   if (raw) return res as any;
   if (res.status === 204) return undefined as any;
-  
+
   const ct = res.headers.get("content-type") || "";
-  if (!ct.includes("application/json")) return undefined as any;
-  
-  const jsonData = await res.json();
+  const responseText = await res.text();
+  if (!responseText) {
+    console.log(`✅ [API] Success: ${method} ${path} (empty body)`);
+    return undefined as any;
+  }
+  if (!ct.includes("application/json")) {
+    console.log(`✅ [API] Success: ${method} ${path} (non-json response)`);
+    return undefined as any;
+  }
+
+  let jsonData: any;
+  try {
+    jsonData = JSON.parse(responseText);
+  } catch (parseError) {
+    console.error(`💥 [API] JSON parse error for ${method} ${path}:`, parseError, "responseText=", responseText);
+    throw new ApiError(
+      `Invalid JSON response from server: ${parseError.message}`,
+      res.status,
+      { raw: responseText },
+      path,
+      method
+    );
+  }
+
   console.log(`✅ [API] Success: ${method} ${path}`);
   return jsonData as T;
 };

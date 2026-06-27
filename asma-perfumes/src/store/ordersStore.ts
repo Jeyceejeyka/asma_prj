@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "@/lib/api";
 
 export interface Order {
-  id: number;
+  id: number;z
   status: string;
   total: number;
   created_at?: string;

@@ -18,24 +18,30 @@ const Checkout = () => {
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
 
-  const deliveryFee = totalPrice() >= checkoutData.freeDeliveryThreshold ? 0 : checkoutData.deliveryFee;
-  const grandTotal = totalPrice() + deliveryFee;
+  const grandTotal = totalPrice();
 
   const isPhoneValid = /^(07|01)\d{8}$/.test(form.phone.replace(/\s/g, ""));
   const isFormValid = form.name.trim().length > 1 && isPhoneValid && form.location && form.address.trim().length > 3;
 
   const handlePay = async () => {
-    if (!isFormValid || cstore.state !== "IDLE") return;
+    if (!isFormValid || cstore.state !== "IDLE") {
+      if (!isFormValid) {
+        toast.error("Please complete checkout details before paying.");
+      }
+      return;
+    }
+    const payload = {
+      name: form.name,
+      phone: form.phone,
+      location: form.location,
+      address: form.address,
+    };
+    console.log("src/pages/Checkout.tsx: handlePay payload=", payload);
     try {
       toast.info(checkoutData.mpesaInstructions);
-      await cstore.startCheckout({
-        name: form.name,
-        phone: form.phone,
-        location: form.location,
-        address: form.address,
-        delivery_fee: deliveryFee,
-      });
+      await cstore.startCheckout(payload);
     } catch (e: any) {
+      console.error("src/pages/Checkout.tsx: handlePay error=", e);
       toast.error(e.message || "Could not place order");
     }
   };
@@ -110,7 +116,6 @@ const Checkout = () => {
 
               <div className="bg-card rounded-xl border border-border/40 p-5 space-y-3 mb-6">
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span>{checkoutData.currency} {totalPrice().toLocaleString()}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Delivery</span><span>{deliveryFee === 0 ? <span className="text-primary">Free</span> : `${checkoutData.currency} ${deliveryFee.toLocaleString()}`}</span></div>
                 <div className="border-t border-border/40 pt-3 flex justify-between"><span className="font-display tracking-wider">Total</span><span className="font-display text-xl text-primary">{checkoutData.currency} {grandTotal.toLocaleString()}</span></div>
               </div>
 
@@ -166,7 +171,6 @@ const Checkout = () => {
                   </div>
                 ))}
                 <div className="border-t border-border/40 mt-3 pt-3 space-y-1.5">
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">Delivery</span><span>{deliveryFee === 0 ? "Free" : `${checkoutData.currency} ${deliveryFee}`}</span></div>
                   <div className="flex justify-between font-display text-lg"><span>Total</span><span className="text-primary">{checkoutData.currency} {grandTotal.toLocaleString()}</span></div>
                 </div>
               </div>

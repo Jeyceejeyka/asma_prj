@@ -39,6 +39,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { useEffect, useRef } from "react";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -67,7 +68,7 @@ const AuthGuard = ({
 
   // Wait for bootstrap to complete before making decisions
   if (!isBootstrapped) {
-    return null; // or a loading spinner
+    return <LoadingOverlay label="Checking session…" />;
   }
 
   if (!isAuthenticated) {

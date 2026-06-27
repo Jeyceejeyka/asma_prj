@@ -92,42 +92,51 @@ class CartCheckoutView(APIView):
 
     @transaction.atomic
     def post(self, request):
+        print("apps/cart/views.py: CartCheckoutView.post user=", getattr(request.user, 'id', None))
+        print("apps/cart/views.py: CartCheckoutView.post request.data=", request.data)
+        print("apps/cart/views.py: CartCheckoutView.post request.headers Idempotency-Key=", request.headers.get('Idempotency-Key'))
+
         # Idempotency key from header or body
         idempotency_key = request.headers.get('Idempotency-Key') or request.data.get('idempotency_key')
         if not idempotency_key:
             return Response({'detail': 'Missing Idempotency-Key'}, status=400)
+
+        phone = request.data.get("phone")
+        print("apps/cart/views.py: CartCheckoutView.post payment phone=", phone)
+        if not phone:
+            return Response(
+                {"detail": "Phone number is required"},
+                status=400
+            )
+
         service = CheckoutService(user=request.user)
         try:
             result = service.execute(idempotency_key=idempotency_key)
+            print("apps/cart/views.py: CartCheckoutView.post checkout service result=", result)
             order = Order.objects.get(id=result['order_id'])
 
             # 🔒 Prevent double payment
             if order.transactions.filter(status='PENDING').exists():
                 return Response({'detail': 'Payment already in progress'}, status=400)
-            
-            phone = request.data.get("phone")
-
-            if not phone:
-                return Response(
-                    {"detail": "Phone number is required"},
-                    status=400
-                )
 
             # 2. Initiate STK push
-                        # payment_response = initiate_payment(order, request.user)
             payment_response = initiate_payment(
                 order,
                 request.user,
                 phone
             )
-
+            print("apps/cart/views.py: CartCheckoutView.post payment_response=", payment_response)
 
             return Response({
                 'detail': 'STK push sent',
                 'checkout_request_id': payment_response['CheckoutRequestID']
             })
         except ValueError as e:
+            print("apps/cart/views.py: CartCheckoutView.post validation error=", str(e))
             return Response({'detail': str(e)}, status=400)
+        except Exception as e:
+            print("apps/cart/views.py: CartCheckoutView.post unexpected error=", str(e))
+            return Response({'detail': 'Internal server error', 'error': str(e)}, status=500)
 
 
 # =========== Admin Cart Views ===========

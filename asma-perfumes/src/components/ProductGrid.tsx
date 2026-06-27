@@ -1,22 +1,35 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useCatalog } from "@/hooks/useCatalog";
+import { useDebounce } from "@/hooks/useDebounce";
 import ProductCard from "@/components/ProductCard";
 import ProductSearch from "@/components/ProductSearch";
 import type { Product } from "@/types/product";
 
 const ProductGrid = () => {
-  const { products, loading } = useCatalog();
-  const [filtered, setFiltered] = useState<Product[]>(products);
+  const { products } = useCatalog();
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 250);
 
-  useEffect(() => {
-    setFiltered(products);
-  }, [products]);
-
-  const handleResults = useCallback((results: Product[]) => {
-    setFiltered(results);
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value);
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = (debouncedQuery || "").trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p: Product) =>
+      p.name.toLowerCase().includes(q) ||
+      p.collection.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.notes.top.toLowerCase().includes(q) ||
+      p.notes.heart.toLowerCase().includes(q) ||
+      p.notes.base.toLowerCase().includes(q) ||
+      p.grade.toLowerCase().includes(q) ||
+      p.season.toLowerCase().includes(q)
+    );
+  }, [products, debouncedQuery]);
 
   return (
     <section className="py-20 sm:py-32 relative overflow-hidden">
@@ -77,7 +90,7 @@ const ProductGrid = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex justify-center mb-10 sm:mb-16"
         >
-          <ProductSearch products={products} onResults={handleResults} />
+          <ProductSearch value={query} onChange={handleQueryChange} />
         </motion.div>
 
         {/* Results Count */}
