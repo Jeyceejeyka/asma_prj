@@ -2,7 +2,7 @@ import React from 'react';
 
 type Props = React.PropsWithChildren<{
   className?: string;
-  as?: string;
+  as?: React.ElementType;
 }>;
 
 const Card: React.FC<Props> = ({ children, className = '', as: As = 'div' }) => {

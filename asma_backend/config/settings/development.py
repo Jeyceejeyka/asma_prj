@@ -17,28 +17,21 @@ SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = env.bool('DEBUG', default=True)
 
-# ALLOWED_HOSTS = env.list(
-#     'ALLOWED_HOSTS',
-#     default=['127.0.0.1', 'localhost']
-# )
 
+ALLOWED_HOSTS = env.list(
+    'ALLOWED_HOSTS'
+)
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "pantomime-expansive-trapezoid.ngrok-free.dev",
-]
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
+FRONTEND_URL = env('FRONTEND_URL')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 # CORS Configuration (ADD THIS SECTION)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",
-    "http://localhost:8083",
-    "http://127.0.0.1:8000",
-    FRONTEND_URL,  # Use the env variable
-]
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[],
+)
 
 CORS_ALLOW_CREDENTIALS = True  # Important for cookies
 
@@ -131,6 +124,7 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # ADD THIS LINE - Must be at the top
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  #this is added after security middleware 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -162,10 +156,6 @@ TEMPLATES = [
 
 AUTH_USER_MODEL = 'accounts.User'
 
-# Database for Development 
-# DATABASES = {
-#     'default': env.db()
-# }
 
 
 # Database for Production
@@ -178,7 +168,7 @@ DATABASES = {
         "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT"),
     },
-};
+}
 
 
 DARAJA = {
@@ -206,12 +196,47 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR.parent / 'staticfiles'
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# Security headers — safe defaults for dev, flip in .env for prod
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+SESSION_COOKIE_SAMESITE = env('SESSION_COOKIE_SAMESITE', default='None')
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+CSRF_COOKIE_SAMESITE = env('CSRF_COOKIE_SAMESITE', default='None')
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', default=False)
+
+# Logging to stdout — docker compose logs -f captures this automatically
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'root': {'handlers': ['console'], 'level': env('LOG_LEVEL', default='INFO')},
+}
 
 # Media and Cloudinary Storage
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/asma_media/'
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+DEBUG = env.bool("DEBUG", default=False)
 
 # Primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

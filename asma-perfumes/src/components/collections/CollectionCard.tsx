@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import Card from '@/components/ui/Card';
+import { resolveCollectionImage } from '@/lib/assets';
 
 type Collection = {
   name: string;
@@ -34,8 +35,12 @@ const CollectionCard: React.FC<{
         <img
           src={imageSrc}
           alt={collection.name}
-          onError={() => setImageSrc('/placeholder.svg')}
+          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+          onError={() => {
+            const fallback = resolveCollectionImage(collection.name) || '/placeholder.svg';
+            setImageSrc(fallback);
+          }}
         />
 
         {/* Hover Overlay */}

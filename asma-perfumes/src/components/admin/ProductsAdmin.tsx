@@ -4,6 +4,7 @@ import { useProductsStore } from "@/store/productsStore";
 import { toast } from "sonner";
 import adminData from "@/data/admin.json";
 
+
 const ProductsAdmin = () => {
   const {
     products,
@@ -72,6 +73,7 @@ const ProductsAdmin = () => {
       setEditing(null);
     } catch (e: any) {
       toast.error(e.message);
+      throw e; // Re-throw so the modal knows the save failed
     }
   };
 
@@ -247,9 +249,10 @@ const ProductFormModal = ({
 }: {
   initial: any;
   onClose: () => void;
-  onSave: (f: any) => void;
+  onSave: (f: any) => Promise<void>;
 }) => {
   const { collections } = useProductsStore();
+  const [saving, setSaving] = useState(false);
   const [f, setF] = useState({
     name: initial?.name || "",
     categoryId: initial?.categoryId ?? "",
@@ -286,7 +289,9 @@ const ProductFormModal = ({
     });
     setPreview(initial?.image || "");
     setImageFile(null);
+    setSaving(false);
   }, [initial]);
+
   const fields = adminData.productFormFields;
 
   const onFile = (file: File | null) => {
@@ -297,29 +302,43 @@ const ProductFormModal = ({
     }
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent double submission
+    if (saving) return;
 
     if (!f.categoryId) {
       toast.error("Category is required");
       return;
     }
 
-    const payload: any = {
-      ...f,
-      price: Number(f.price),
-      stock_quantity: Number(f.stock_quantity),
-      categoryId: Number(f.categoryId),
-    };
-    delete payload.collection;
+    setSaving(true);
 
-    if (imageFile) {
-      payload.image = imageFile;
-    } else if (f.image && !f.image.startsWith("http")) {
-      delete payload.image;
+    try {
+      const payload: any = {
+        ...f,
+        price: Number(f.price),
+        stock_quantity: Number(f.stock_quantity),
+        categoryId: Number(f.categoryId),
+      };
+      delete payload.collection;
+
+      if (imageFile) {
+        payload.image = imageFile;
+      } else if (f.image && !f.image.startsWith("http")) {
+        delete payload.image;
+      }
+
+      await onSave(payload);
+    } catch (error) {
+      // Error is already handled in onSave, but we need to re-throw to keep saving false
+      // Only re-throw if we want the modal to stay open
+      // Since onSave already shows toast, we just need to setSaving(false)
+      // which happens in finally
+    } finally {
+      setSaving(false);
     }
-
-    onSave(payload);
   };
 
   return (
@@ -348,6 +367,7 @@ const ProductFormModal = ({
             required
             value={f.name}
             onChange={(v) => setF({ ...f, name: v })}
+            disabled={saving}
           />
           <div>
             <label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1.5 block">
@@ -362,7 +382,8 @@ const ProductFormModal = ({
                   categoryId: e.target.value ? Number(e.target.value) : "",
                 })
               }
-              className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+              disabled={saving}
+              className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Select category</option>
               {collections.map((c) => (
@@ -378,6 +399,7 @@ const ProductFormModal = ({
             required
             value={String(f.price)}
             onChange={(v) => setF({ ...f, price: v })}
+            disabled={saving}
           />
           <Field
             label="Stock"
@@ -385,6 +407,7 @@ const ProductFormModal = ({
             required
             value={String(f.stock_quantity)}
             onChange={(v) => setF({ ...f, stock_quantity: v })}
+            disabled={saving}
           />
           <Field
             label="Image URL (optional)"
@@ -394,6 +417,7 @@ const ProductFormModal = ({
               if (v && !imageFile) setPreview(v);
             }}
             placeholder="https://..."
+            disabled={saving}
           />
           <div className="col-span-2">
             <label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1.5 block">
@@ -404,7 +428,8 @@ const ProductFormModal = ({
                 type="file"
                 accept="image/*"
                 onChange={(e) => onFile(e.target.files?.[0] || null)}
-                className="text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground"
+                disabled={saving}
+                className="text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-primary file:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               />
               {preview && (
                 <img
@@ -420,30 +445,35 @@ const ProductFormModal = ({
             options={fields.grades}
             value={f.grade}
             onChange={(v) => setF({ ...f, grade: v })}
+            disabled={saving}
           />
           <Select
             label="Season"
             options={fields.seasons}
             value={f.season}
             onChange={(v) => setF({ ...f, season: v })}
+            disabled={saving}
           />
           <Select
             label="Gender"
             options={fields.genders}
             value={f.gender}
             onChange={(v) => setF({ ...f, gender: v })}
+            disabled={saving}
           />
           <Select
             label="Sillage"
             options={fields.sillages}
             value={f.sillage}
             onChange={(v) => setF({ ...f, sillage: v })}
+            disabled={saving}
           />
           <Select
             label="Longevity"
             options={fields.longevities}
             value={f.longevity}
             onChange={(v) => setF({ ...f, longevity: v })}
+            disabled={saving}
           />
           <div className="col-span-2">
             <label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1.5 block">
@@ -453,22 +483,32 @@ const ProductFormModal = ({
               rows={3}
               value={f.description}
               onChange={(e) => setF({ ...f, description: e.target.value })}
-              className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+              disabled={saving}
+              className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <div className="col-span-2 flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-border/40 text-xs"
+              disabled={saving}
+              className="px-4 py-2 rounded-xl border border-border/40 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs"
+              disabled={saving}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
-              Save
+              {saving ? (
+                <>
+                  <span className="inline-block w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
             </button>
           </div>
         </form>
@@ -484,6 +524,7 @@ const Field = ({
   required,
   type = "text",
   placeholder,
+  disabled = false,
 }: any) => (
   <div>
     <label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1.5 block">
@@ -496,11 +537,13 @@ const Field = ({
       onChange={(e) => onChange(e.target.value)}
       required={required}
       placeholder={placeholder}
-      className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+      disabled={disabled}
+      className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
     />
   </div>
 );
-const Select = ({ label, options, value, onChange }: any) => (
+
+const Select = ({ label, options, value, onChange, disabled = false }: any) => (
   <div>
     <label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1.5 block">
       {label}
@@ -508,7 +551,8 @@ const Select = ({ label, options, value, onChange }: any) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+      disabled={disabled}
+      className="w-full bg-background border border-border/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {options.map((o: string) => (
         <option key={o} value={o}>

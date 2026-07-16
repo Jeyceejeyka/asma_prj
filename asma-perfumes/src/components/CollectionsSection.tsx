@@ -1,17 +1,17 @@
-import { useMemo, useState, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowUpRight } from 'lucide-react';
-import { useProductsStore } from '@/store/productsStore';
-import { useCatalog } from '@/hooks/useCatalog';
-import { resolveCollectionImage } from '@/lib/assets';
-import type { Product } from '@/types/product';
+import { useMemo, useState, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
+import { useProductsStore } from "@/store/productsStore";
+import { useCatalog } from "@/hooks/useCatalog";
+import { resolveCollectionImage } from "@/lib/assets";
+import type { Product } from "@/types/product";
 
-import Container from '@/components/ui/Container';
-import { Eyebrow, Display, Lead } from '@/components/ui/Typography';
-import CollectionCard from '@/components/collections/CollectionCard';
-import CollectionSkeleton from '@/components/ui/LoadingSkeleton';
-import { EmptyState, ErrorState } from '@/components/ui/EmptyError';
+import Container from "@/components/ui/Container";
+import { Eyebrow, Display, Lead } from "@/components/ui/Typography";
+import CollectionCard from "@/components/collections/CollectionCard";
+import CollectionSkeleton from "@/components/ui/LoadingSkeleton";
+import { EmptyState, ErrorState } from "@/components/ui/EmptyError";
 
 const CollectionsSection = () => {
   const { collections, error, loading } = useCatalog();
@@ -58,7 +58,11 @@ const CollectionsSection = () => {
   const spotlightCollections = collections.slice(1, 3);
 
   return (
-    <section id="collections" ref={sectionRef} className="py-20 sm:py-32 relative overflow-hidden">
+    <section
+      id="collections"
+      ref={sectionRef}
+      className="py-20 sm:py-32 relative overflow-hidden"
+    >
       {/* Background Texture */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/20 to-transparent pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/[0.02] rounded-full blur-[150px] pointer-events-none" />
@@ -81,7 +85,9 @@ const CollectionsSection = () => {
             className="w-28 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent mx-auto mt-6 sm:mt-8"
           />
           <Lead className="max-w-2xl mx-auto mt-6 text-slate-400/80">
-            Discover our most celebrated scent families in a gallery of refined fragrances, where every collection is designed to make a lasting impression.
+            Discover our most celebrated scent families in a gallery of refined
+            fragrances, where every collection is designed to make a lasting
+            impression.
           </Lead>
         </motion.div>
 
@@ -106,9 +112,20 @@ const CollectionsSection = () => {
               {/* Collection Image */}
               <div className="absolute inset-0">
                 <img
-                  src={collectionMeta.get(featuredCollection.name)?.coverImage || featuredCollection.image || resolveCollectionImage(featuredCollection.name)}
+                  src={
+                    collectionMeta.get(featuredCollection.name)?.coverImage ||
+                    featuredCollection.image ||
+                    resolveCollectionImage(featuredCollection.name)
+                  }
                   alt={featuredCollection.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    img.onerror = null;
+                    const fallback = resolveCollectionImage(featuredCollection.name);
+                    img.src = fallback || '/placeholder.png';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background/90" />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-background/40" />
@@ -126,16 +143,28 @@ const CollectionsSection = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                  <p className="text-[10px] sm:text-[11px] tracking-[0.4em] uppercase text-primary/80 mb-4 font-body">Featured Collection</p>
-                  <h3 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight text-foreground mb-4">{featuredCollection.name}</h3>
-                  <p className="mt-3 text-foreground/50 font-light text-sm sm:text-base leading-relaxed max-w-lg">{featuredCollection.description || featuredCollection.tagline || 'A sensorial journey anchored in premium extracts and timeless craftsmanship.'}</p>
+                  <p className="text-[10px] sm:text-[11px] tracking-[0.4em] uppercase text-primary/80 mb-4 font-body">
+                    Featured Collection
+                  </p>
+                  <h3 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight text-foreground mb-4">
+                    {featuredCollection.name}
+                  </h3>
+                  <p className="mt-3 text-foreground/50 font-light text-sm sm:text-base leading-relaxed max-w-lg">
+                    {featuredCollection.description ||
+                      featuredCollection.tagline ||
+                      "A sensorial journey anchored in premium extracts and timeless craftsmanship."}
+                  </p>
                   <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex items-center gap-3">
                       <span className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-                        {collectionMeta.get(featuredCollection.name)?.productCount ?? 0} fragrances
+                        {collectionMeta.get(featuredCollection.name)
+                          ?.productCount ?? 0}{" "}
+                        fragrances
                       </span>
                       <span className="w-1 h-1 rounded-full bg-primary/40" />
-                      <span className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">Exclusive</span>
+                      <span className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        Exclusive
+                      </span>
                     </div>
                   </div>
                   <Link
@@ -143,7 +172,10 @@ const CollectionsSection = () => {
                     className="group/btn inline-flex items-center gap-2 mt-6 rounded-full border border-primary bg-primary/10 px-6 py-3 text-sm tracking-[0.2em] uppercase text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
                   >
                     View Collection
-                    <ArrowUpRight size={16} className="transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+                    <ArrowUpRight
+                      size={16}
+                      className="transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
+                    />
                   </Link>
                 </motion.div>
               </div>
@@ -157,7 +189,10 @@ const CollectionsSection = () => {
             <div className="grid gap-6">
               {spotlightCollections.map((collection, index) => {
                 const meta = collectionMeta.get(collection.name);
-                const coverImage = meta?.coverImage || collection.image || resolveCollectionImage(collection.name);
+                const coverImage =
+                  meta?.coverImage ||
+                  collection.image ||
+                  resolveCollectionImage(collection.name);
                 const productCount = meta?.productCount ?? 0;
                 return (
                   <motion.div
@@ -183,7 +218,10 @@ const CollectionsSection = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           {visibleCollections.map((collection, index) => {
             const meta = collectionMeta.get(collection.name);
-            const coverImage = meta?.coverImage || collection.image || resolveCollectionImage(collection.name);
+            const coverImage =
+              meta?.coverImage ||
+              collection.image ||
+              resolveCollectionImage(collection.name);
             const productCount = meta?.productCount ?? 0;
             return (
               <motion.div
@@ -193,7 +231,11 @@ const CollectionsSection = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: index * 0.08 }}
               >
-                <CollectionCard collection={collection} coverImage={coverImage} productCount={productCount} />
+                <CollectionCard
+                  collection={collection}
+                  coverImage={coverImage}
+                  productCount={productCount}
+                />
               </motion.div>
             );
           })}
@@ -211,12 +253,17 @@ const CollectionsSection = () => {
               className="group relative text-[11px] uppercase tracking-[0.25em] text-primary/80 transition-colors duration-300 hover:text-primary"
             >
               <span className="relative z-10 flex items-center gap-2">
-                {showAll ? 'Show Less' : `View All ${collections.length} Collections`}
+                {showAll
+                  ? "Show Less"
+                  : `View All ${collections.length} Collections`}
                 <motion.span
                   animate={{ rotate: showAll ? -180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ArrowUpRight size={14} className={showAll ? 'rotate-[-180deg]' : ''} />
+                  <ArrowUpRight
+                    size={14}
+                    className={showAll ? "rotate-[-180deg]" : ""}
+                  />
                 </motion.span>
               </span>
               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-primary/40 group-hover:w-full transition-all duration-500" />

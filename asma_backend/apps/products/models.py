@@ -6,7 +6,9 @@ class Category(models.Model):
     category_name = models.CharField(max_length=255, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    @property
+    def name(self):
+        return self.product_name
     def __str__(self):
         return str(self.category_name)
 

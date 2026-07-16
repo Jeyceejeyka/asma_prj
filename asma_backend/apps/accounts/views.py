@@ -7,6 +7,8 @@ from django.utils.http import (
     urlsafe_base64_encode,
     urlsafe_base64_decode,
 )
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from urllib.parse import quote
 
 from rest_framework import generics, permissions, status
@@ -41,6 +43,7 @@ def _get_refresh_token(request):
 # AUTH VIEWS
 # =========================
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -67,8 +70,6 @@ class RegisterView(APIView):
                     user,
                     context={"request": request},
                 ).data,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -86,6 +87,7 @@ class RegisterView(APIView):
         return response
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -111,8 +113,6 @@ class LoginView(APIView):
                     user,
                     context={"request": request},
                 ).data,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
             },
             status=status.HTTP_200_OK,
         )
@@ -130,6 +130,7 @@ class LoginView(APIView):
         return response
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class RefreshTokenView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -152,8 +153,6 @@ class RefreshTokenView(APIView):
             response = Response(
                 {
                     "message": "Token refreshed",
-                    "access_token": access_token,
-                    "refresh_token": str(refresh),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -167,6 +166,7 @@ class RefreshTokenView(APIView):
                 httponly=True,
                 secure=secure_cookie,
                 samesite="None",
+                path="/",
                 max_age=60 * 10,
             )
 

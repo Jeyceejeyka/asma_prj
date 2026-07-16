@@ -1,9 +1,6 @@
 // Centralized API client for the Asma Perfumes Django backend.
 // Authentication uses httpOnly cookies set by the backend. The browser
-// attaches them automatically via `credentials: "include"`.   never
-// touch tokens from JS — no localStorage, no sessionStorage, no Authorization header.
-
-import { getAccessToken, getRefreshToken, updateAuthSession } from "@/lib/authStorage";
+// attaches them automatically via `credentials: "include"`.
 
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000/api/v1";
 
@@ -47,17 +44,18 @@ export class ApiError extends Error {
 
 let refreshPromise: Promise<boolean> | null = null;
 
-const tryRefresh = async (refreshToken?: string): Promise<boolean> => {
+const getCookieValue = (name: string): string | null => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(`(^|; )${name}=([^;]*)`);
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
+const tryRefresh = async (): Promise<boolean> => {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
     try {
       console.log("🔄 [API] Attempting token refresh");
-      const token = refreshToken || getRefreshToken();
-      if (!token) {
-        console.warn("❌ [API] No refresh token available for refresh");
-        return false;
-      }
 
       const res = await fetch(`${API_BASE}/accounts/refresh/`, {
         method: "POST",
@@ -65,8 +63,9 @@ const tryRefresh = async (refreshToken?: string): Promise<boolean> => {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          ...(getCookieValue("csrftoken") ? { "X-CSRFToken": getCookieValue("csrftoken")! } : {}),
         },
-        body: JSON.stringify({ refresh_token: token }),
+        body: JSON.stringify({}),
       });
 
       if (!res.ok) {
@@ -74,22 +73,8 @@ const tryRefresh = async (refreshToken?: string): Promise<boolean> => {
         return false;
       }
 
-      const responsePayload = await res.json();
-      const newAccessToken = responsePayload.access_token;
-      const newRefreshToken = responsePayload.refresh_token ?? token;
-
-      if (newAccessToken) {
-        updateAuthSession({
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-          lastVerifiedAt: new Date().toISOString(),
-        });
-        console.log("✅ [API] Token refresh successful");
-        return true;
-      }
-
-      console.warn("❌ [API] Token refresh returned no access token");
-      return false;
+      console.log("✅ [API] Token refresh successful");
+      return true;
     } catch (error) {
       console.error("💥 [API] Token refresh error:", error);
       return false;
@@ -117,8 +102,6 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
     headers: hdrs,
     _retried,
     auth = true,
-    authToken,
-    refreshToken,
     ...rest
   } = opts;
   const method = rest.method || "GET";
@@ -135,22 +118,20 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
       ...(hdrs as any),
     };
 
-    if (auth) {
-      const token = authToken ?? getAccessToken();
-      if (token) {
-        h["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
     if (body !== undefined && !(body instanceof FormData)) {
       h["Content-Type"] = "application/json";
+    }
+
+    const csrfToken = getCookieValue("csrftoken");
+    if (csrfToken && method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+      h["X-CSRFToken"] = csrfToken;
     }
 
     return h;
   };
 
-  const doFetch = async () => {
-    return fetch(fullUrl, {
+  const doFetch = async () =>
+    fetch(fullUrl, {
       ...rest,
       credentials: "include",
       headers: buildHeaders(),
@@ -161,7 +142,7 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
           ? body
           : JSON.stringify(body),
     });
-  };
+
 
   let res: Response;
   
@@ -190,7 +171,7 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   if (res.status === 401 && !_retried && !isAuthRoute) {
     console.log("🔐 [API] 401 Unauthorized, attempting refresh");
 
-    const refreshSuccess = await tryRefresh(refreshToken);
+    const refreshSuccess = await tryRefresh();
 
     if (refreshSuccess) {
       try {

@@ -25,42 +25,5 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("/node_modules/sonner/")) {
-            return "vendor_sonner";
-          }
-          if (id.includes("/node_modules/recharts/")) {
-            return "vendor_recharts";
-          }
-          if (id.includes("/node_modules/react-dom/")) {
-            return "vendor_react_dom";
-          }
-          if (id.includes("/node_modules/framer-motion/")) {
-            return "vendor_framer_motion";
-          }
-          if (id.includes("/node_modules/@tanstack/react-query/") || id.includes("/node_modules/@tanstack/query-core/")) {
-            return "vendor_tanstack_query";
-          }
-          if (id.includes("/node_modules/react-router-dom/")) {
-            return "vendor_react_router_dom";
-          }
-          if (id.includes("/node_modules/lucide-react/")) {
-            return "vendor_lucide_react";
-          }
-          if (id.includes("/node_modules/next-themes/")) {
-            return "vendor_next_themes";
-          }
-          if (id.endsWith("/src/store/cartStore.ts")) {
-            return "cart_store";
-          }
-          if (id.includes("/node_modules/")) {
-            return "vendor";
-          }
-        },
-      },
-    },
-  },
+  build: {}, 
 }));

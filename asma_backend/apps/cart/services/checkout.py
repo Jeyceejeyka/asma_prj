@@ -84,7 +84,7 @@ class CheckoutService:
         for item in items:
             product = item.products
             if item.quantity > product.stock_quantity:
-                raise ValueError(f'Insufficient stock for {product.name}')
+                raise ValueError(f'Insufficient stock for {product.product_name}')
             item_total = product.price * item.quantity
             total_price += item_total
             prepared_items.append({

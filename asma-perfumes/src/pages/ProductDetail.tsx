@@ -79,7 +79,7 @@ const ProductDetail = () => {
   ];
 
   const handleAddToCart = async () => {
-    if (adding) return;
+    if (adding || hasInCart) return;
     setAdding(true);
     try {
       await addItem(product, selectedSize, quantity);
@@ -87,7 +87,7 @@ const ProductDetail = () => {
     } catch (e: any) {
       toast.error(e.message || "Could not add to cart");
     } finally {
-      setTimeout(() => setAdding(false), 1500);
+      window.setTimeout(() => setAdding(false), 1500);
     }
   };
 

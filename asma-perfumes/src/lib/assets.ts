@@ -32,7 +32,7 @@ import collectionVelvet from "@/assets/bottles/collection-velvet-rose.svg";
 import collectionAmber from "@/assets/bottles/collection-amber-noir.svg";
 import collectionFresh from "@/assets/bottles/collection-fresh-waters.svg";
 
-import placeholder from "/placeholder.svg";
+import placeholder from "/placeholder.png";
 
 const slug = (s: string) =>
   s.toLowerCase().trim().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

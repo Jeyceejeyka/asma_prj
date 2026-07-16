@@ -37,4 +37,4 @@ class OrderItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.product.name} x {self.quantity} @ {self.price}'
+        return f'{self.product.product_name} x {self.quantity} @ {self.price}'

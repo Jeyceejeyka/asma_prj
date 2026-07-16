@@ -197,7 +197,14 @@ const HeroImage = ({ collection }: { collection: { name: string; image?: string 
       src={src}
       alt={collection.name}
       className="absolute inset-0 w-full h-full object-cover opacity-30"
-      onError={() => setSrc(resolveCollectionImage(collection.name))}
+      loading="lazy"
+      onError={(e) => {
+        const fallback = resolveCollectionImage(collection.name) || '/placeholder.svg';
+        const img = e.currentTarget;
+        img.onerror = null;
+        setSrc(fallback);
+        img.src = fallback;
+      }}
     />
   );
 };

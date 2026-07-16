@@ -1,0 +1,46 @@
+
+services:
+  backend:
+    build:
+      context: ./asma_backend
+    container_name: asma_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./asma-perfumes
+    container_name: asma_frontend
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16-alpine
+    container_name: asma_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  static_volume:

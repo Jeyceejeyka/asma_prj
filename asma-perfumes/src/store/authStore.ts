@@ -90,12 +90,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchMe: async (force = false) => {
     console.log("[ME] Fetching user");
 
-    const session = readAuthSession();
-    if (!session?.accessToken) {
-      set({ user: null, isAuthenticated: false, isBootstrapped: true });
-      return;
-    }
-
     if (get().isBootstrapped && get().user && !force) {
       console.log("[ME] Already bootstrapped and user exists, skipping verification");
       return;
@@ -111,7 +105,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({ user, isAuthenticated: true, isBootstrapped: true });
       writeAuthSession({
-        ...session,
         user,
         lastVerifiedAt: new Date().toISOString(),
       });
@@ -122,8 +115,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         clearAuthSession();
         set({ user: null, isAuthenticated: false, isBootstrapped: true });
       } else if (e instanceof ApiError && e.status === 0) {
-        // Network error / backend unreachable: keep the current tab session if available,
-        // but do not silently overwrite with stale or unauthenticated state.
         set({ isBootstrapped: true });
       } else {
         set({ user: null, isAuthenticated: false, isBootstrapped: true });
@@ -151,12 +142,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log("[LOGIN] Response:", data);
 
       const user = toUser(data.user ?? data);
-      const accessToken = data.access_token;
-      const refreshToken = data.refresh_token;
-
-      if (accessToken && refreshToken) {
-        writeAuthSession({ accessToken, refreshToken, user, lastVerifiedAt: new Date().toISOString() });
-      }
+      writeAuthSession({ user, lastVerifiedAt: new Date().toISOString() });
 
       set({ user, isAuthenticated: true, isBootstrapped: true });
     } catch (err) {
@@ -205,12 +191,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log("[REGISTER] Response:", result);
 
       const user = toUser(result.user ?? result);
-      const accessToken = result.access_token;
-      const refreshToken = result.refresh_token;
-
-      if (accessToken && refreshToken) {
-        writeAuthSession({ accessToken, refreshToken, user, lastVerifiedAt: new Date().toISOString() });
-      }
+      writeAuthSession({ user, lastVerifiedAt: new Date().toISOString() });
 
       console.log("[REGISTER] Registration successful, user:", user);
 
@@ -232,11 +213,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const session = readAuthSession();
       await api("/accounts/logout/", {
         method: "POST",
         auth: false,
-        body: { refresh_token: session?.refreshToken },
+        body: {},
       });
       console.log("[LOGOUT] Success");
     } catch (err) {

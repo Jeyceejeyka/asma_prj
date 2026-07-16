@@ -3,10 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import F
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer, CartItemWriteSerializer
 from apps.products.models import Product
-from django.db import transaction
 from apps.cart.services.checkout import initiate_payment, CheckoutService
 from apps.orders.models import Order
 
@@ -45,18 +46,27 @@ class CartClearView(APIView):
 class CartItemAddView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request):
         serializer = CartItemWriteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         cart = get_user_cart(request.user)
         product = get_object_or_404(Product, id=serializer.validated_data['product_id'])
         quantity = serializer.validated_data['quantity']
-        item, created = CartItem.objects.get_or_create(cart=cart, products=product) #type: ignore[attr-defined]
+
+        item, created = CartItem.objects.select_for_update().get_or_create(
+            cart=cart,
+            products=product,
+            defaults={"quantity": quantity},
+        )
+
         if not created:
-            item.quantity += quantity
+            CartItem.objects.filter(pk=item.pk).update(quantity=F("quantity") + quantity)
+            item.refresh_from_db()
         else:
             item.quantity = quantity
-        item.save()
+            item.save(update_fields=["quantity"])
+
         return Response(CartItemSerializer(item).data, status=status.HTTP_201_CREATED)
 
 class CartItemUpdateDeleteView(APIView):

@@ -44,7 +44,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
     } catch (error: any) {
       toast.error(error?.message || "Failed to add item to cart");
     } finally {
-      setTimeout(() => setAddingCart(false), 1500);
+      window.setTimeout(() => setAddingCart(false), 1500);
     }
   };
 
@@ -91,7 +91,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             onError={(e) => {
               const img = e.currentTarget as HTMLImageElement;
-              img.src = "/placeholder.svg";
+              img.src = "/placeholder.png";
             }}
           />
 
