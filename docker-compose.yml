@@ -6,7 +6,7 @@ services:
     container_name: asma_backend
     restart: unless-stopped
     env_file:
-      - .env
+      - ${ENV_FILE:-.env.development}
     volumes:
       - static_volume:/app/staticfiles
     ports:

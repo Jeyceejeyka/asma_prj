@@ -28,4 +28,8 @@ urlpatterns = [
     # path('api/v1/analytics/', include('apps.analytics.urls')),
     # path('api/v1/notifications/', include('apps.notifications.urls')),
     # path('api/v1/reviews/', include('apps.reviews.urls')),
+    
+    
+    path("", include("apps.core.urls")),
+
 ]
