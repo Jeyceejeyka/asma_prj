@@ -2,7 +2,7 @@
 // Authentication uses httpOnly cookies set by the backend. The browser
 // attaches them automatically via `credentials: "include"`.
 
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000/api/v1";
+export const API_BASE = (import.meta.env.production.VITE_API_BASE_URL as string) || "http://localhost:8000/api/v1";
 
 // Lightweight connectivity tracker so UI can surface a "backend unreachable" banner.
 type Listener = (online: boolean) => void;
