@@ -2,6 +2,9 @@
 // Authentication uses httpOnly cookies set by the backend. The browser
 // attaches them automatically via `credentials: "include"`.
 
+import { log, warn, error } from "@/lib/logger";
+
+
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000/api/v1";
 
 // Lightweight connectivity tracker so UI can surface a "backend unreachable" banner.
@@ -55,7 +58,7 @@ const tryRefresh = async (): Promise<boolean> => {
 
   refreshPromise = (async () => {
     try {
-      console.log("🔄 [API] Attempting token refresh");
+      log("🔄 [API] Attempting token refresh");
 
       const res = await fetch(`${API_BASE}/accounts/refresh/`, {
         method: "POST",
@@ -69,14 +72,14 @@ const tryRefresh = async (): Promise<boolean> => {
       });
 
       if (!res.ok) {
-        console.warn(`❌ [API] Token refresh failed: ${res.status} ${res.statusText}`);
+        warn(`❌ [API] Token refresh failed: ${res.status} ${res.statusText}`);
         return false;
       }
 
-      console.log("✅ [API] Token refresh successful");
+      log("✅ [API] Token refresh successful");
       return true;
     } catch (error) {
-      console.error("💥 [API] Token refresh error:", error);
+      error("💥 [API] Token refresh error:", error);
       return false;
     } finally {
       refreshPromise = null;
@@ -107,9 +110,9 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   const method = rest.method || "GET";
   const fullUrl = `${API_BASE}${path}`;
   
-  console.log(`src/lib/api.ts: 📡 [API] ${method} ${path}`);
+  log(`src/lib/api.ts: 📡 [API] ${method} ${path}`);
   if (body !== undefined) {
-    console.log("src/lib/api.ts: 📤 [API] Request body:", body instanceof FormData ? "[FormData]" : body);
+    log("src/lib/api.ts: 📤 [API] Request body:", body instanceof FormData ? "[FormData]" : body);
   }
 
   const buildHeaders = (): HeadersInit => {
@@ -149,9 +152,9 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   try {
     res = await doFetch();
     apiHealth._set(true);
-    console.log(`📥 [API] Response: ${res.status} ${res.statusText}`);
+    log(`📥 [API] Response: ${res.status} ${res.statusText}`);
   } catch (error: any) {
-    console.error('error', error);
+    error('error', error);
     apiHealth._set(false);
     throw new ApiError(
       `Network error: ${error.message}`,
@@ -169,21 +172,21 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
     path.includes("/accounts/register");
 
   if (res.status === 401 && !_retried && !isAuthRoute) {
-    console.log("🔐 [API] 401 Unauthorized, attempting refresh");
+    log("🔐 [API] 401 Unauthorized, attempting refresh");
 
     const refreshSuccess = await tryRefresh();
 
     if (refreshSuccess) {
       try {
-        console.log("🔄 [API] Retrying request after refresh");
+        log("🔄 [API] Retrying request after refresh");
         res = await doFetch();
-        console.log(`📥 [API] Retry response: ${res.status} ${res.statusText}`);
+        log(`📥 [API] Retry response: ${res.status} ${res.statusText}`);
       } catch (error: any) {
-        console.error("💥 [API] Retry failed:", error);
+        error("💥 [API] Retry failed:", error);
         throw new ApiError(`Retry failed: ${error.message}`, 0, null, path, method);
       }
     } else {
-      console.log("🚫 [API] Refresh failed, session expired");
+      log("🚫 [API] Refresh failed, session expired");
       window.dispatchEvent(new CustomEvent("auth:session-expired"));
       throw new ApiError("Session expired. Please login again.", 401, null, path, method);
     }
@@ -202,11 +205,11 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
         data = { raw: errorText };
       }
     } catch (e) {
-      console.error("💥 [API] Failed to parse error response:", e);
+      error("💥 [API] Failed to parse error response:", e);
     }
     
     // Log detailed error
-    console.error("💥 [API] Request failed:", {
+    error("💥 [API] Request failed:", {
       status: res.status,
       statusText: res.statusText,
       url: fullUrl,
@@ -237,11 +240,11 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   const ct = res.headers.get("content-type") || "";
   const responseText = await res.text();
   if (!responseText) {
-    console.log(`✅ [API] Success: ${method} ${path} (empty body)`);
+    log(`✅ [API] Success: ${method} ${path} (empty body)`);
     return undefined as any;
   }
   if (!ct.includes("application/json")) {
-    console.log(`✅ [API] Success: ${method} ${path} (non-json response)`);
+    log(`✅ [API] Success: ${method} ${path} (non-json response)`);
     return undefined as any;
   }
 
@@ -249,7 +252,7 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
   try {
     jsonData = JSON.parse(responseText);
   } catch (parseError) {
-    console.error(`💥 [API] JSON parse error for ${method} ${path}:`, parseError, "responseText=", responseText);
+    error(`💥 [API] JSON parse error for ${method} ${path}:`, parseError, "responseText=", responseText);
     throw new ApiError(
       `Invalid JSON response from server: ${parseError.message}`,
       res.status,
@@ -259,6 +262,6 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
     );
   }
 
-  console.log(`✅ [API] Success: ${method} ${path}`);
+  log(`✅ [API] Success: ${method} ${path}`);
   return jsonData as T;
 };

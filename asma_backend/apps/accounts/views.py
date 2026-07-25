@@ -26,6 +26,7 @@ from apps.accounts.serializers import (
     ChangePasswordSerializer,
     ForgotPasswordSerializer,
     ResetPasswordSerializer,
+    AdminUserUpdateSerializer,
 )
 
 from .utils import set_auth_cookies, clear_auth_cookies
@@ -365,7 +366,7 @@ class UserDetailView(generics.RetrieveAPIView):
 
 class UserUpdateView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAdminUser]
-    serializer_class = UserSerializer
+    serializer_class = AdminUserUpdateSerializer
     queryset = User.objects.all()
 
 

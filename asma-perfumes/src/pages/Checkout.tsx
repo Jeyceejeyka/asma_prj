@@ -8,6 +8,7 @@ import checkoutData from "@/data/checkout.json";
 import Footer from "@/components/Footer";
 import { useCheckoutStore } from "@/store/checkoutStore";
 
+
 const steps = checkoutData.steps;
 
 const Checkout = () => {
@@ -36,12 +37,12 @@ const Checkout = () => {
       location: form.location,
       address: form.address,
     };
-    console.log("src/pages/Checkout.tsx: handlePay payload=", payload);
+    log("src/pages/Checkout.tsx: handlePay payload=", payload);
     try {
       toast.info(checkoutData.mpesaInstructions);
       await cstore.startCheckout(payload);
     } catch (e: any) {
-      console.error("src/pages/Checkout.tsx: handlePay error=", e);
+      error("src/pages/Checkout.tsx: handlePay error=", e);
       toast.error(e.message || "Could not place order");
     }
   };

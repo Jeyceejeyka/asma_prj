@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { api } from "@/lib/api";
 import { useCartStore } from "@/store/cartStore";
+import { error, log } from "@/lib/logger";
 
 type CheckoutState =
   | "IDLE"
@@ -60,10 +61,10 @@ export const useCheckoutStore = create<State>((set, get) => {
       set({ state: "INITIATING", message: null });
       try {
         const data = await useCartStore.getState().checkout(payload);
-        console.log("src/store/checkoutStore.ts: checkoutStore.startCheckout server response=", data);
+        log("src/store/checkoutStore.ts: checkoutStore.startCheckout server response=", data);
         const checkoutRequestId = data?.checkout_request_id || data?.checkoutRequestId;
         if (!checkoutRequestId) {
-          console.error("src/store/checkoutStore.ts: unexpected checkout response, missing checkout_request_id, server response=", data);
+          error("src/store/checkoutStore.ts: unexpected checkout response, missing checkout_request_id, server response=", data);
           set({ state: "FAILED", message: "Server did not return a checkout request ID" });
           return;
         }
@@ -73,7 +74,7 @@ export const useCheckoutStore = create<State>((set, get) => {
         // trigger an immediate poll
         await get().pollStatusOnce(String(checkoutRequestId));
       } catch (e: any) {
-        console.error("src/store/checkoutStore.ts: checkoutStore.startCheckout error=", e);
+        error("src/store/checkoutStore.ts: checkoutStore.startCheckout error=", e);
         set({ state: "FAILED", message: e?.message || "Failed to initiate checkout" });
       }
     },
@@ -105,7 +106,7 @@ export const useCheckoutStore = create<State>((set, get) => {
           return;
         }
       } catch (e: any) {
-        console.error("src/store/checkoutStore.ts: pollStatusOnce error=", e);
+        error("src/store/checkoutStore.ts: pollStatusOnce error=", e);
         // network or 404 — keep polling. If 404, backend hasn't created the record yet.
         // If repeated failures are seen, UI can expose retry.
         // Do not flip to FAILED here to avoid false negatives.

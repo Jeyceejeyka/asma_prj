@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { api } from "@/lib/api";
 import { useProductsStore } from "@/store/productsStore";
 import type { CartItem, Product } from "@/types/product";
+import { log } from "@/lib/logger";
 
 interface RawCartItem {
   id?: number;
@@ -164,13 +165,13 @@ export const useCartStore = create<CartState>((set, get) => ({
     const idempotencyKey =
       (globalThis.crypto?.randomUUID?.() ??
         `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    console.log("src/store/cartStore.ts: cartStore.checkout payload=", payload, "idempotencyKey=", idempotencyKey);
+    log("src/store/cartStore.ts: cartStore.checkout payload=", payload, "idempotencyKey=", idempotencyKey);
     const data = await api<any>("/cart/checkout/", {
       method: "POST",
       body: payload ?? {},
       headers: { "Idempotency-Key": idempotencyKey },
     });
-    console.log("src/store/cartStore.ts: cartStore.checkout response=", data);
+    log("src/store/cartStore.ts: cartStore.checkout response=", data);
     await get().fetchCart();
     return data;
   },

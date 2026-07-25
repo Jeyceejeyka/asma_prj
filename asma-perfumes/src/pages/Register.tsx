@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Info } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { error } from "@/lib/logger";
 
 const Register = () => {
   const [form, setForm] = useState({
@@ -86,7 +87,7 @@ const Register = () => {
       toast.success("Account created successfully! Welcome to ASMA.");
       // The useEffect will handle redirect after isAuthenticated becomes true
     } catch (err: any) {
-      console.error("Registration error:", err);
+      error("Registration error:", err);
       
       // Handle specific error messages from backend
       if (err.data?.email) {

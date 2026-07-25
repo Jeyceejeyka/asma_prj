@@ -1,6 +1,7 @@
 // Admin user management endpoints (/api/v1/accounts/users/...)
 import { create } from "zustand";
 import { api } from "@/lib/api";
+import { log }from "@/lib/logger";
 
 export interface AdminUser {
   id: number;
@@ -49,6 +50,8 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       body: payload,
     });
     set({ users: get().users.map((u) => (u.id === id ? { ...u, ...updated } : u)) });
+    log('=======',updated);
+    
     return updated;
   },
 

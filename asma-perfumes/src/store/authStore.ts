@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { api, ApiError } from "@/lib/api";
 import { clearAuthSession, readAuthSession, writeAuthSession } from "@/lib/authStorage";
+import {  error, log, warn } from "@/lib/logger";
 
 export interface AuthUser {
   id: number;
@@ -88,10 +89,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchMe: async (force = false) => {
-    console.log("[ME] Fetching user");
+    log("[ME] Fetching user");
 
     if (get().isBootstrapped && get().user && !force) {
-      console.log("[ME] Already bootstrapped and user exists, skipping verification");
+      log("[ME] Already bootstrapped and user exists, skipping verification");
       return;
     }
 
@@ -101,7 +102,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await api<any>("/accounts/me/");
       const user = toUser(data);
 
-      console.log("[ME] Response:", data);
+      log("[ME] Response:", data);
 
       set({ user, isAuthenticated: true, isBootstrapped: true });
       writeAuthSession({
@@ -109,7 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         lastVerifiedAt: new Date().toISOString(),
       });
     } catch (e) {
-      console.warn("[ME] Error:", e);
+      warn("[ME] Error:", e);
 
       if (e instanceof ApiError && e.status === 401) {
         clearAuthSession();
@@ -128,7 +129,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // LOGIN
   // =========================
   login: async (email, password) => {
-    console.log("[LOGIN] Start", { email });
+    log("[LOGIN] Start", { email });
 
     set({ isLoading: true });
 
@@ -139,14 +140,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         auth: false,
       });
 
-      console.log("[LOGIN] Response:", data);
+      log("[LOGIN] Response:", data);
 
       const user = toUser(data.user ?? data);
       writeAuthSession({ user, lastVerifiedAt: new Date().toISOString() });
 
       set({ user, isAuthenticated: true, isBootstrapped: true });
     } catch (err) {
-      console.error("[LOGIN] Error:", err);
+      error("[LOGIN] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });
@@ -157,7 +158,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // REGISTER (Updated with username generation)
   // =========================
   register: async (data) => {
-    console.log("[REGISTER] Payload:", data);
+    log("[REGISTER] Payload:", data);
 
     set({ isLoading: true });
 
@@ -179,8 +180,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         password2: data.password,
       };
 
-      console.log("[REGISTER] Generated username:", finalUsername);
-      console.log("[REGISTER] Sending payload:", payload);
+      log("[REGISTER] Generated username:", finalUsername);
+      log("[REGISTER] Sending payload:", payload);
 
       const result = await api<any>("/accounts/register/", {
         method: "POST",
@@ -188,16 +189,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         auth: false,
       });
 
-      console.log("[REGISTER] Response:", result);
+      log("[REGISTER] Response:", result);
 
       const user = toUser(result.user ?? result);
       writeAuthSession({ user, lastVerifiedAt: new Date().toISOString() });
 
-      console.log("[REGISTER] Registration successful, user:", user);
+      log("[REGISTER] Registration successful, user:", user);
 
       set({ user, isAuthenticated: true, isBootstrapped: true });
     } catch (err) {
-      console.error("[REGISTER] Error:", err);
+      error("[REGISTER] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });
@@ -208,7 +209,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // LOGOUT
   // =========================
   logout: async () => {
-    console.log("[LOGOUT] Start");
+    log("[LOGOUT] Start");
 
     set({ isLoading: true });
 
@@ -218,9 +219,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         auth: false,
         body: {},
       });
-      console.log("[LOGOUT] Success");
+      log("[LOGOUT] Success");
     } catch (err) {
-      console.warn("[LOGOUT] Error ignored:", err);
+      warn("[LOGOUT] Error ignored:", err);
     } finally {
       clearAuthSession();
       set({
@@ -236,7 +237,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // PASSWORD RESET REQUEST
   // =========================
   requestPasswordReset: async (email) => {
-    console.log("[RESET REQUEST]", email);
+    log("[RESET REQUEST]", email);
 
     set({ isLoading: true });
 
@@ -246,7 +247,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: { email },
       });
     } catch (err) {
-      console.error("[RESET REQUEST] Error:", err);
+      error("[RESET REQUEST] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });
@@ -257,7 +258,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // RESET PASSWORD
   // =========================
   resetPassword: async (email, token, new_password) => {
-    console.log("[RESET PASSWORD]", { email });
+    log("[RESET PASSWORD]", { email });
 
     set({ isLoading: true });
 
@@ -267,7 +268,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: { email, token, new_password },
       });
     } catch (err) {
-      console.error("[RESET PASSWORD] Error:", err);
+      error("[RESET PASSWORD] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });
@@ -278,7 +279,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // CHANGE PASSWORD
   // =========================
   changePassword: async (old_password, new_password) => {
-    console.log("[CHANGE PASSWORD]");
+    log("[CHANGE PASSWORD]");
 
     set({ isLoading: true });
 
@@ -288,7 +289,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: { old_password, new_password },
       });
     } catch (err) {
-      console.error("[CHANGE PASSWORD] Error:", err);
+      error("[CHANGE PASSWORD] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });
@@ -299,7 +300,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // UPDATE PROFILE
   // =========================
   updateProfile: async (data) => {
-    console.log("[UPDATE PROFILE]", data);
+    log("[UPDATE PROFILE]", data);
 
     set({ isLoading: true });
 
@@ -309,13 +310,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: data,
       });
 
-      console.log("[UPDATE PROFILE] Response:", result);
+      log("[UPDATE PROFILE] Response:", result);
 
       set({
         user: toUser(result),
       });
     } catch (err) {
-      console.error("[UPDATE PROFILE] Error:", err);
+      error("[UPDATE PROFILE] Error:", err);
       throw err;
     } finally {
       set({ isLoading: false });

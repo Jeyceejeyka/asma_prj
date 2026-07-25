@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { error, log } from "@/lib/logger";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ const Login = () => {
       toast.success("Welcome back!");
       // The useEffect will handle redirect after isAuthenticated becomes true
     } catch (err: any) {
-      console.error("Login error:", err);
+      error("Login error:", err);
       
       // Handle specific error messages
       if (err.message?.toLowerCase().includes("credentials") || 

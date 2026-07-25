@@ -71,7 +71,7 @@ export const readAuthSession = (): AuthSessionPayload | null => {
 
     return JSON.parse(raw) as AuthSessionPayload;
   } catch (error) {
-    console.error("Failed to read auth session:", error);
+    error("Failed to read auth session:", error);
     return null;
   }
 };
@@ -91,7 +91,7 @@ export const writeAuthSession = (payload: AuthSessionPayload): void => {
       JSON.stringify(payload)
     );
   } catch (error) {
-    console.error("Failed to write auth session:", error);
+    error("Failed to write auth session:", error);
   }
 };
 
@@ -106,6 +106,6 @@ export const clearAuthSession = (): void => {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error("Failed to clear auth session:", error);
+    error("Failed to clear auth session:", error);
   }
 };
