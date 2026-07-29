@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import checkoutData from "@/data/checkout.json";
 import Footer from "@/components/Footer";
 import { useCheckoutStore } from "@/store/checkoutStore";
+import { log, error } from "@/lib/logger"
 
 
 const steps = checkoutData.steps;
