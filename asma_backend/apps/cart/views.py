@@ -138,9 +138,13 @@ class CartCheckoutView(APIView):
             print("apps/cart/views.py: CartCheckoutView.post payment_response=", payment_response)
 
             return Response({
+                'status': 'PENDING',
                 'detail': 'STK push sent',
-                'checkout_request_id': payment_response['CheckoutRequestID']
-            })
+                'message': 'Payment initiated. Awaiting M-Pesa confirmation before treating this as successful.',
+                'checkout_request_id': payment_response['CheckoutRequestID'],
+                'checkoutRequestId': payment_response['CheckoutRequestID'],
+                'transaction_status': 'PENDING',
+            }, status=200)
         except ValueError as e:
             print("apps/cart/views.py: CartCheckoutView.post validation error=", str(e))
             return Response({'detail': str(e)}, status=400)

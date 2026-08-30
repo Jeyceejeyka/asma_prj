@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -7,6 +9,22 @@ from apps.payments.serializers import PaymentTransactionSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions
+
+
+def _parse_callback_metadata(callback):
+    metadata = callback.get('CallbackMetadata', {}).get('Item', [])
+    if not isinstance(metadata, list):
+        return {}
+
+    parsed = {}
+    for item in metadata:
+        if not isinstance(item, dict):
+            continue
+        name = item.get('Name')
+        value = item.get('Value')
+        if name is not None and value is not None:
+            parsed[str(name)] = value
+    return parsed
 
 
 # DarajaCallbackView: Handles Safaricom Daraja callbacks (source of truth)
@@ -22,9 +40,9 @@ class DarajaCallbackView(APIView):
             callback = data['Body']['stkCallback']
             merchant_request_id = callback['MerchantRequestID']
             checkout_request_id = callback['CheckoutRequestID']
-            result_code = callback['ResultCode']
+            result_code = int(callback['ResultCode'])
             result_desc = callback['ResultDesc']
-            metadata = callback.get('CallbackMetadata', {}).get('Item', [])
+            metadata = _parse_callback_metadata(callback)
             print(
                 "apps/payments/views.py: parsed callback =>",
                 {
@@ -36,13 +54,6 @@ class DarajaCallbackView(APIView):
                 },
             )
 
-            # Parse metadata
-            parsed_metadata = {
-                item['Name']: item['Value']
-                for item in metadata
-                if 'Name' in item and 'Value' in item
-            }
-
             # Lock row for concurrency safety
             payment_tx = (
                 PaymentTransaction.objects
@@ -50,51 +61,95 @@ class DarajaCallbackView(APIView):
                 .get(checkout_request_id=checkout_request_id)
             )
 
-            # Idempotency guard (optional but recommended)
-            if payment_tx.processed:
+            # Validate transaction reference consistency before trusting the callback.
+            if payment_tx.merchant_request_id and merchant_request_id != payment_tx.merchant_request_id:
                 return Response(
-                    {"message": "Already processed."},
-                    status=status.HTTP_200_OK
+                    {'error': 'MerchantRequestID does not match the stored transaction.'},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Update transaction
-            payment_tx.status = 'SUCCESS' if result_code == 0 else 'FAILED'
+            # Idempotency guard: callback replay is not a new payment outcome.
+            if payment_tx.processed:
+                return Response(
+                    {
+                        'message': 'Already processed.',
+                        'status': payment_tx.status,
+                        'checkoutRequestId': payment_tx.checkout_request_id,
+                        'receipt': payment_tx.mpesa_receipt_number,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            amount_value = metadata.get('Amount')
+            if amount_value is not None:
+                try:
+                    callback_amount = Decimal(str(amount_value))
+                except (InvalidOperation, TypeError, ValueError):
+                    return Response({'error': 'Invalid callback amount.'}, status=status.HTTP_400_BAD_REQUEST)
+                if callback_amount != payment_tx.amount:
+                    return Response({'error': 'Callback amount does not match the pending transaction amount.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            phone_value = metadata.get('PhoneNumber')
+            if phone_value is not None:
+                callback_phone = str(phone_value).strip()
+                if callback_phone and callback_phone != payment_tx.phone_number:
+                    return Response({'error': 'Callback phone number does not match the pending transaction phone.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if result_code == 0:
+                receipt = metadata.get('MpesaReceiptNumber') or metadata.get('ReceiptNumber')
+                if not receipt or not str(receipt).strip():
+                    return Response({'error': 'Successful callback missing M-Pesa receipt number.'}, status=status.HTTP_400_BAD_REQUEST)
+                payment_tx.status = PaymentTransaction.SUCCESS
+                payment_tx.mpesa_receipt_number = str(receipt).strip()
+            elif result_code == 1032:
+                payment_tx.status = PaymentTransaction.CANCELLED
+            else:
+                payment_tx.status = PaymentTransaction.FAILED
+
             payment_tx.raw_callback = data
             payment_tx.result_code = result_code
             payment_tx.result_desc = result_desc
             payment_tx.processed = True
             payment_tx.save()
 
-            # Deduct or release stock based on payment result
             order = payment_tx.order
             from apps.cart.services.checkout import CheckoutService
             checkout_service = CheckoutService(payment_tx.user)
             if result_code == 0:
-                # Payment success: deduct stock, mark order items as not reserved
                 checkout_service.deduct_stock(order)
             else:
-                # Payment failed: release reserved stock
                 checkout_service.release_stock(order)
 
+            if payment_tx.status == PaymentTransaction.SUCCESS:
+                order.status = 'paid'
+            elif payment_tx.status in (PaymentTransaction.CANCELLED, PaymentTransaction.FAILED):
+                order.status = 'failed'
+            order.save(update_fields=['status'])
+
             return Response(
-                {"message": "Callback processed successfully."},
-                status=status.HTTP_200_OK
+                {
+                    'message': 'Callback processed successfully.',
+                    'status': payment_tx.status,
+                    'checkoutRequestId': payment_tx.checkout_request_id,
+                    'receipt': payment_tx.mpesa_receipt_number,
+                },
+                status=status.HTTP_200_OK,
             )
 
         except KeyError:
             return Response(
-                {"error": "Invalid callback format."},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Invalid callback format.'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except PaymentTransaction.DoesNotExist:
             return Response(
-                {"error": "Transaction not found."},
-                status=status.HTTP_404_NOT_FOUND
+                {'error': 'Transaction not found.'},
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:
             return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -122,14 +177,38 @@ class PaymentStatusView(APIView):
         if payment.user_id != request.user.id and not request.user.is_staff:
             return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
 
+        # A callback is the source of truth, but a tunnel/network failure must
+        # not leave a customer polling a PENDING payment indefinitely.
+        from apps.payments.timeout_job import expire_pending_transaction
+
+        payment = expire_pending_transaction(payment.id)
+
         serializer = PaymentTransactionSerializer(payment)
         return Response({
             'status': payment.status,
-            'message': payment.result_desc,
+            'message': payment.result_desc or (
+                'Payment pending confirmation.' if payment.status == PaymentTransaction.PENDING else
+                'M-Pesa payment request is in progress.'
+            ),
             'checkoutRequestId': payment.checkout_request_id,
             'receipt': payment.mpesa_receipt_number,
             'transactionId': payment.id,
+            'isSuccessful': payment.status == PaymentTransaction.SUCCESS,
+            'isPending': payment.status == PaymentTransaction.PENDING,
             'data': serializer.data,
+        })
+
+
+class UserPaymentHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        payments = PaymentTransaction.objects.filter(user=request.user).order_by('-created_at')
+        serializer = PaymentTransactionSerializer(payments, many=True)
+        return Response({
+            'count': payments.count(),
+            'results': serializer.data,
+            'items': serializer.data,
         })
 
 # ======== Admin Payments Views =========

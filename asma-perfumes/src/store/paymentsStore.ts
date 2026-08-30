@@ -23,6 +23,7 @@ interface PaymentsState {
   removeAdmin: (id: number) => Promise<void>;
   fetchByOrder: (orderId: number) => Promise<Payment[]>;
   fetchByUser: (userId: number) => Promise<Payment[]>;
+  fetchMine: () => Promise<Payment[]>;
   darajaCallback: (payload: any) => Promise<any>;
 }
 
@@ -59,6 +60,13 @@ export const usePaymentsStore = create<PaymentsState>((set, get) => ({
   fetchByUser: async (userId) => {
     const data = await api<any>(`/payments/admin/users/${userId}/payments/`);
     return unwrap<Payment>(data);
+  },
+
+  fetchMine: async () => {
+    const data = await api<any>("/payments/history/");
+    const list = unwrap<Payment>(data);
+    set({ payments: list, loading: false, error: null });
+    return list;
   },
 
   darajaCallback: (payload) =>

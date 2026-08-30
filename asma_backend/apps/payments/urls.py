@@ -7,11 +7,13 @@ from .views import (
     AdminOrderPaymentsListView,
     AdminUserPaymentsListView,
     PaymentStatusView,
+    UserPaymentHistoryView,
 )
 
 urlpatterns = [
     path('daraja/callback/', DarajaCallbackView.as_view(), name='daraja-callback'),
     path('status/', PaymentStatusView.as_view(), name='payment-status'),
+    path('history/', UserPaymentHistoryView.as_view(), name='user-payment-history'),
     path('admin/payments/', AdminPaymentListView.as_view(), name='admin-payments'),
     path('admin/payments/<int:pk>/', AdminPaymentDetailView.as_view(), name='admin-payment-detail'),
     path('admin/payments/<int:pk>/delete/', AdminPaymentDeleteView.as_view(), name='admin-payment-delete'),

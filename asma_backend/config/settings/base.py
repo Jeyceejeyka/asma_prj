@@ -265,6 +265,14 @@ DARAJA = {
     ),
 }
 
+# An STK prompt is short lived.  If Safaricom cannot deliver a callback (for
+# example when a development tunnel is offline), do not leave the order and
+# browser poller in PENDING forever.
+PAYMENT_PENDING_TIMEOUT_SECONDS = env.int(
+    "PAYMENT_PENDING_TIMEOUT_SECONDS",
+    default=120,
+)
+
 # ==============================================================================
 # LOGGING
 # ==============================================================================

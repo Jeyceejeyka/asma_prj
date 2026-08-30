@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { api } from "@/lib/api";
 import { useCartStore } from "@/store/cartStore";
-import { error, log } from "@/lib/logger";
-
+import {  log, error } from "@/lib/logger";
 type CheckoutState =
   | "IDLE"
   | "INITIATING"
@@ -61,17 +60,31 @@ export const useCheckoutStore = create<State>((set, get) => {
       set({ state: "INITIATING", message: null });
       try {
         const data = await useCartStore.getState().checkout(payload);
-        log("src/store/checkoutStore.ts: checkoutStore.startCheckout server response=", data);
-        const checkoutRequestId = data?.checkout_request_id || data?.checkoutRequestId;
+        console.log("src/store/checkoutStore.ts: checkoutStore.startCheckout server response=", data);
+        const checkoutRequestId = data?.checkout_request_id || data?.checkoutRequestId || data?.checkoutRequestId;
+        const responseStatus = data?.status || data?.transaction_status || "PENDING";
         if (!checkoutRequestId) {
           error("src/store/checkoutStore.ts: unexpected checkout response, missing checkout_request_id, server response=", data);
           set({ state: "FAILED", message: "Server did not return a checkout request ID" });
           return;
         }
-        set({ checkoutRequestId: String(checkoutRequestId), state: "STK_PUSH_SENT", polling: true });
-        // start polling
+
+        // Payment initiation is not proof of success. The transaction remains pending until
+        // the provider callback or the server polling endpoint confirms a terminal state.
+        set({
+          checkoutRequestId: String(checkoutRequestId),
+          state: responseStatus === "SUCCESS" ? "SUCCESS" : "STK_PUSH_SENT",
+          message: data?.message || data?.detail || "Payment initiated. Awaiting confirmation.",
+          polling: true,
+        });
+
+        if (responseStatus === "SUCCESS") {
+          set({ state: "SUCCESS", receipt: data?.receipt || null, transactionId: data?.transactionId || null });
+          stopPollingInternal();
+          return;
+        }
+
         startPolling(String(checkoutRequestId));
-        // trigger an immediate poll
         await get().pollStatusOnce(String(checkoutRequestId));
       } catch (e: any) {
         error("src/store/checkoutStore.ts: checkoutStore.startCheckout error=", e);
@@ -86,11 +99,16 @@ export const useCheckoutStore = create<State>((set, get) => {
         const msg = resp?.message || null;
         if (!status) return;
         if (status === "PENDING") {
-          set({ state: "PENDING_CONFIRMATION", message: msg });
+          set({
+            state: "PENDING_CONFIRMATION",
+            message: msg || "Payment initiated. Awaiting confirmation from M-Pesa.",
+            receipt: resp?.receipt || null,
+            transactionId: resp?.transactionId || null,
+          });
           return;
         }
         if (status === "SUCCESS") {
-          set({ state: "SUCCESS", message: msg, receipt: resp?.receipt || null, transactionId: resp?.transactionId || null });
+          set({ state: "SUCCESS", message: msg || "Payment confirmed.", receipt: resp?.receipt || null, transactionId: resp?.transactionId || null });
           // finalize: ensure cart cleared only after confirmed success
           try {
             await useCartStore.getState().clearCart();

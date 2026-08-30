@@ -206,6 +206,7 @@ const Checkout = () => {
                   {cstore.state === "PENDING_CONFIRMATION" && "Awaiting confirmation..."}
                   {cstore.state === "SUCCESS" && "Payment confirmed"}
                   {cstore.state === "FAILED" && "Payment failed"}
+                  {cstore.state === "CANCELLED" && "Payment cancelled"}
                 </button>
               </div>
             </motion.div>
@@ -224,9 +225,9 @@ const Checkout = () => {
             </motion.div>
           )}
 
-          {cstore.state === "FAILED" && (
+          {(cstore.state === "FAILED" || cstore.state === "CANCELLED") && (
             <motion.div key="failed" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="text-center py-12">
-              <h2 className="font-display text-xl mb-3">Payment Failed</h2>
+              <h2 className="font-display text-xl mb-3">{cstore.state === "CANCELLED" ? "Payment Cancelled" : "Payment Failed"}</h2>
               <p className="text-muted-foreground mb-6">{cstore.message || "Payment could not be completed."}</p>
               <div className="flex justify-center gap-3">
                 <button onClick={() => cstore.reset()} className="btn-gold">Try Again</button>

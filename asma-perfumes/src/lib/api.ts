@@ -5,7 +5,14 @@
 import { log, warn, error } from "@/lib/logger";
 
 
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000/api/v1";
+// A relative fallback is intentional: the production Nginx server proxies
+// `/api` to Django. Using `localhost` here makes deployed browsers call their
+// own machine instead of the backend whenever the build-time Vite variable is
+// absent.
+const configuredApiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)
+  ?.trim()
+  .replace(/\/+$/, "");
+export const API_BASE = configuredApiBase || "/api/v1";
 
 // Lightweight connectivity tracker so UI can surface a "backend unreachable" banner.
 type Listener = (online: boolean) => void;
@@ -78,8 +85,8 @@ const tryRefresh = async (): Promise<boolean> => {
 
       log("✅ [API] Token refresh successful");
       return true;
-    } catch (error) {
-      error("💥 [API] Token refresh error:", error);
+    } catch (cause) {
+      error("💥 [API] Token refresh error:", cause);
       return false;
     } finally {
       refreshPromise = null;
@@ -153,13 +160,13 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
     res = await doFetch();
     apiHealth._set(true);
     log(`📥 [API] Response: ${res.status} ${res.statusText}`);
-  } catch (error: any) {
-    error('error', error);
+  } catch (cause: any) {
+    error("💥 [API] Network error:", cause);
     apiHealth._set(false);
     throw new ApiError(
-      `Network error: ${error.message}`,
+      `Network error: ${cause.message}`,
       0,
-      { originalError: error.message },
+      { originalError: cause.message },
       path,
       method
     );
@@ -181,9 +188,9 @@ export const api = async <T = any>(path: string, opts: Options = {}): Promise<T>
         log("🔄 [API] Retrying request after refresh");
         res = await doFetch();
         log(`📥 [API] Retry response: ${res.status} ${res.statusText}`);
-      } catch (error: any) {
-        error("💥 [API] Retry failed:", error);
-        throw new ApiError(`Retry failed: ${error.message}`, 0, null, path, method);
+      } catch (cause: any) {
+        error("💥 [API] Retry failed:", cause);
+        throw new ApiError(`Retry failed: ${cause.message}`, 0, null, path, method);
       }
     } else {
       log("🚫 [API] Refresh failed, session expired");
