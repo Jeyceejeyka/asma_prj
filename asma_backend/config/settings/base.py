@@ -229,6 +229,10 @@ CORS_ALLOWED_ORIGINS = env.list(
     default=[],
 )
 
+CORS_ALLOW_HEADERS = env.list(
+    "CORS_ALLOW_HEADERS",
+    default=[],
+)
 CORS_ALLOW_CREDENTIALS = True
 
 # ==============================================================================
